@@ -1,0 +1,14 @@
+using AnchorMarket.Application.Features.Groups.Commands;
+using FluentValidation;
+
+namespace AnchorMarket.Application.Features.Groups.Validators;
+
+public class UpdateGroupCommandValidator : AbstractValidator<UpdateGroupCommand>
+{
+    public UpdateGroupCommandValidator()
+    {
+        RuleFor(x => x.GroupId).NotEmpty();
+        RuleFor(x => x.Name).NotEmpty().MaximumLength(200);
+        RuleFor(x => x.Description).MaximumLength(1000);
+    }
+}

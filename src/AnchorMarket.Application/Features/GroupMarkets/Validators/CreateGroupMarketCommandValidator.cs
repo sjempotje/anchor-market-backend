@@ -1,0 +1,17 @@
+using AnchorMarket.Application.Features.GroupMarkets.Commands;
+using FluentValidation;
+
+namespace AnchorMarket.Application.Features.GroupMarkets.Validators;
+
+public class CreateGroupMarketCommandValidator : AbstractValidator<CreateGroupMarketCommand>
+{
+    public CreateGroupMarketCommandValidator()
+    {
+        RuleFor(x => x.GroupId).NotEmpty();
+        RuleFor(x => x.CreatorId).NotEmpty();
+        RuleFor(x => x.Title).NotEmpty().MaximumLength(300);
+        RuleFor(x => x.Description).NotEmpty().MaximumLength(2000);
+        RuleFor(x => x.ResolutionDeadline).GreaterThan(DateTimeOffset.UtcNow);
+        RuleFor(x => x.OutcomeTitles).NotEmpty();
+    }
+}

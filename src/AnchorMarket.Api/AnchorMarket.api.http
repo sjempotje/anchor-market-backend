@@ -1,0 +1,6 @@
+@anchor_market_api_HostAddress = http://localhost:5079
+
+GET {{anchor_market_api_HostAddress}}/
+Accept: application/json
+
+###
