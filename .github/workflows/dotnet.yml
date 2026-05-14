@@ -17,6 +17,7 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
+          cache: true
 
       - name: Restore dependencies
         run: dotnet restore
@@ -45,6 +46,7 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
+          cache: true
 
       - name: Restore dependencies
         run: dotnet restore
@@ -89,13 +91,17 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push multi-arch image
+      - name: Build and push multi-arch image with cache
         uses: docker/build-push-action@v5
         with:
           context: .
           file: src/AnchorMarket.Api/Dockerfile
           push: true
           platforms: linux/amd64,linux/arm64
+
           tags: |
             ghcr.io/${{ github.repository_owner }}/anchormarket:latest
             ghcr.io/${{ github.repository_owner }}/anchormarket:${{ github.sha }}
+
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
