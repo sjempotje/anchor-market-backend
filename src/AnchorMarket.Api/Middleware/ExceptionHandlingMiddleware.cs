@@ -1,3 +1,4 @@
+using AnchorMarket.Application.Common.Exceptions;
 using FluentValidation;
 using System.Text.Json;
 
@@ -24,6 +25,16 @@ public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Exception
 
             var body = JsonSerializer.Serialize(new { errors });
             await context.Response.WriteAsync(body);
+        }
+        catch (ForbiddenException ex)
+        {
+            logger.LogWarning(ex, "Forbidden");
+            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+        }
+        catch (NotFoundException ex)
+        {
+            logger.LogWarning(ex, "Not found");
+            context.Response.StatusCode = StatusCodes.Status404NotFound;
         }
         catch (Exception ex)
         {

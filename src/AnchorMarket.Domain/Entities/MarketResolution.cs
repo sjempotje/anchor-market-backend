@@ -10,4 +10,14 @@ public class MarketResolution : BaseEntity
 
     public Market Market { get; private set; } = null!;
     public Outcome WinningOutcome { get; private set; } = null!;
+
+    public static MarketResolution Create(Guid marketId, Guid winningOutcomeId, Guid resolvedById)
+    {
+        return new MarketResolution
+        {
+            MarketId = marketId,
+            WinningOutcomeId = winningOutcomeId,
+            ResolvedById = resolvedById
+        };
+    }
 }

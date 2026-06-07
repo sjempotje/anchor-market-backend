@@ -2,6 +2,7 @@ using AnchorMarket.Application.Features.Positions.Commands;
 using AnchorMarket.Application.Features.Positions.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace AnchorMarket.Api.Controllers;
 
@@ -20,6 +21,19 @@ public class PositionsController : ControllerBase
     public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
     {
         var positions = await _sender.Send(new GetPositionsQuery(), cancellationToken);
+        return Ok(positions);
+    }
+
+    /// <summary>
+    /// Gets all positions for the current user with calculated PnL information.
+    /// </summary>
+    [HttpGet("with-pnl")]
+    public async Task<IActionResult> GetPositionsWithPnL(CancellationToken cancellationToken)
+    {
+        var userId = User.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier)
+            ?? throw new InvalidOperationException("User not authenticated.");
+
+        var positions = await _sender.Send(new GetPositionsWithPnLQuery(Guid.Parse(userId)), cancellationToken);
         return Ok(positions);
     }
 

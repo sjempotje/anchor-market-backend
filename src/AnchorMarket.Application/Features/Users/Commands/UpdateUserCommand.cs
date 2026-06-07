@@ -1,3 +1,6 @@
+using AnchorMarket.Application.Common.Exceptions;
+using AnchorMarket.Application.Common.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using MediatR;
 
 namespace AnchorMarket.Application.Features.Users.Commands;
@@ -6,6 +9,29 @@ public record UpdateUserCommand(Guid UserId, string Username, string Email) : IR
 
 public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand>
 {
-    public Task Handle(UpdateUserCommand request, CancellationToken cancellationToken)
-        => throw new NotImplementedException();
+    private readonly IApplicationDbContext _context;
+
+    public UpdateUserCommandHandler(IApplicationDbContext context)
+    {
+        _context = context;
+    }
+
+    public async Task Handle(UpdateUserCommand request, CancellationToken cancellationToken)
+    {
+        var user = await _context.Users.FindAsync([request.UserId], cancellationToken);
+
+        if (user is null)
+            throw new NotFoundException($"User with ID {request.UserId} not found.");
+
+        var existingUser = await _context.Users.AnyAsync(
+            u => u.Id != request.UserId &&
+                 (u.Username == request.Username || u.Email.ToLower() == request.Email.ToLower()),
+            cancellationToken);
+
+        if (existingUser)
+            throw new InvalidOperationException("Username or email already exists.");
+
+        user.Update(request.Username, request.Email);
+        await _context.SaveChangesAsync(cancellationToken);
+    }
 }

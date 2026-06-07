@@ -20,6 +20,11 @@ public class WalletConfiguration : IEntityTypeConfiguration<Wallet>
             .HasPrecision(18, 6)
             .IsRequired();
 
+        builder.HasOne<User>()
+            .WithOne(u => u.Wallet)
+            .HasForeignKey<Wallet>(w => w.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         builder.HasMany(w => w.Transactions)
             .WithOne(t => t.Wallet)
             .HasForeignKey(t => t.WalletId)

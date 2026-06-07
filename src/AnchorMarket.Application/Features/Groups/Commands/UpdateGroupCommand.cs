@@ -1,3 +1,6 @@
+using AnchorMarket.Application.Common.Exceptions;
+using AnchorMarket.Application.Common.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using MediatR;
 
 namespace AnchorMarket.Application.Features.Groups.Commands;
@@ -9,6 +12,21 @@ public record UpdateGroupCommand(
 
 public class UpdateGroupCommandHandler : IRequestHandler<UpdateGroupCommand>
 {
-    public Task Handle(UpdateGroupCommand request, CancellationToken cancellationToken)
-        => throw new NotImplementedException();
+    private readonly IApplicationDbContext _context;
+
+    public UpdateGroupCommandHandler(IApplicationDbContext context)
+    {
+        _context = context;
+    }
+
+    public async Task Handle(UpdateGroupCommand request, CancellationToken cancellationToken)
+    {
+        var group = await _context.Groups.FindAsync([request.GroupId], cancellationToken);
+
+        if (group is null)
+            throw new NotFoundException($"Group with ID {request.GroupId} not found.");
+
+        group.Update(request.Name, request.Description);
+        await _context.SaveChangesAsync(cancellationToken);
+    }
 }

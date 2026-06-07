@@ -82,6 +82,67 @@ namespace AnchorMarket.Infrastructure.Persistence.Migrations
                     b.ToTable("GroupMemberships");
                 });
 
+            modelBuilder.Entity("AnchorMarket.Domain.Entities.LimitOrder", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal>("FilledQuantity")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("numeric(18,6)");
+
+                    b.Property<Guid>("MarketId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("OutcomeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Price")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("numeric(18,6)");
+
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("numeric(18,6)");
+
+                    b.Property<string>("Side")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<decimal>("TotalCost")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("numeric(18,6)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MarketId");
+
+                    b.HasIndex("OutcomeId");
+
+                    b.ToTable("LimitOrders");
+                });
+
             modelBuilder.Entity("AnchorMarket.Domain.Entities.Market", b =>
                 {
                     b.Property<Guid>("Id")
@@ -202,6 +263,18 @@ namespace AnchorMarket.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<decimal>("CurrentFairValue")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("numeric(18,6)");
+
+                    b.Property<decimal>("EntryPrice")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("numeric(18,6)");
+
+                    b.Property<decimal>("FairValueAtEntry")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("numeric(18,6)");
+
                     b.Property<Guid>("OutcomeId")
                         .HasColumnType("uuid");
 
@@ -222,35 +295,57 @@ namespace AnchorMarket.Infrastructure.Persistence.Migrations
                     b.ToTable("Positions");
                 });
 
-            modelBuilder.Entity("AnchorMarket.Domain.Entities.Product", b =>
+            modelBuilder.Entity("AnchorMarket.Domain.Entities.TradeExecution", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<Guid>("BuyerOrderId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)");
+                    b.Property<decimal>("ExecutedPrice")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("numeric(18,6)");
 
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                    b.Property<Guid>("InitiatorUserId")
+                        .HasColumnType("uuid");
 
-                    b.Property<decimal>("Price")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)");
+                    b.Property<Guid>("LimitOrderId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("MarketId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("OutcomeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("SellerOrderId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Shares")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("numeric(18,6)");
+
+                    b.Property<decimal>("TotalValue")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("numeric(18,6)");
 
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Products");
+                    b.HasIndex("LimitOrderId");
+
+                    b.HasIndex("MarketId");
+
+                    b.HasIndex("OutcomeId");
+
+                    b.ToTable("TradeExecutions");
                 });
 
             modelBuilder.Entity("AnchorMarket.Domain.Entities.Transaction", b =>
@@ -290,6 +385,41 @@ namespace AnchorMarket.Infrastructure.Persistence.Migrations
                     b.ToTable("Transactions");
                 });
 
+            modelBuilder.Entity("AnchorMarket.Domain.Entities.User", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Users_Email");
+
+                    b.HasIndex("Username")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Users_Username");
+
+                    b.ToTable("Users");
+                });
+
             modelBuilder.Entity("AnchorMarket.Domain.Entities.Wallet", b =>
                 {
                     b.Property<Guid>("Id")
@@ -326,6 +456,25 @@ namespace AnchorMarket.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Group");
+                });
+
+            modelBuilder.Entity("AnchorMarket.Domain.Entities.LimitOrder", b =>
+                {
+                    b.HasOne("AnchorMarket.Domain.Entities.Market", "Market")
+                        .WithMany()
+                        .HasForeignKey("MarketId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AnchorMarket.Domain.Entities.Outcome", "Outcome")
+                        .WithMany()
+                        .HasForeignKey("OutcomeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Market");
+
+                    b.Navigation("Outcome");
                 });
 
             modelBuilder.Entity("AnchorMarket.Domain.Entities.Market", b =>
@@ -379,6 +528,33 @@ namespace AnchorMarket.Infrastructure.Persistence.Migrations
                     b.Navigation("Outcome");
                 });
 
+            modelBuilder.Entity("AnchorMarket.Domain.Entities.TradeExecution", b =>
+                {
+                    b.HasOne("AnchorMarket.Domain.Entities.LimitOrder", "LimitOrder")
+                        .WithMany("TradeExecutions")
+                        .HasForeignKey("LimitOrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AnchorMarket.Domain.Entities.Market", "Market")
+                        .WithMany()
+                        .HasForeignKey("MarketId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AnchorMarket.Domain.Entities.Outcome", "Outcome")
+                        .WithMany()
+                        .HasForeignKey("OutcomeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("LimitOrder");
+
+                    b.Navigation("Market");
+
+                    b.Navigation("Outcome");
+                });
+
             modelBuilder.Entity("AnchorMarket.Domain.Entities.Transaction", b =>
                 {
                     b.HasOne("AnchorMarket.Domain.Entities.Wallet", "Wallet")
@@ -390,11 +566,25 @@ namespace AnchorMarket.Infrastructure.Persistence.Migrations
                     b.Navigation("Wallet");
                 });
 
+            modelBuilder.Entity("AnchorMarket.Domain.Entities.Wallet", b =>
+                {
+                    b.HasOne("AnchorMarket.Domain.Entities.User", null)
+                        .WithOne("Wallet")
+                        .HasForeignKey("AnchorMarket.Domain.Entities.Wallet", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("AnchorMarket.Domain.Entities.Group", b =>
                 {
                     b.Navigation("Markets");
 
                     b.Navigation("Memberships");
+                });
+
+            modelBuilder.Entity("AnchorMarket.Domain.Entities.LimitOrder", b =>
+                {
+                    b.Navigation("TradeExecutions");
                 });
 
             modelBuilder.Entity("AnchorMarket.Domain.Entities.Market", b =>
@@ -407,6 +597,11 @@ namespace AnchorMarket.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("AnchorMarket.Domain.Entities.Outcome", b =>
                 {
                     b.Navigation("Positions");
+                });
+
+            modelBuilder.Entity("AnchorMarket.Domain.Entities.User", b =>
+                {
+                    b.Navigation("Wallet");
                 });
 
             modelBuilder.Entity("AnchorMarket.Domain.Entities.Wallet", b =>

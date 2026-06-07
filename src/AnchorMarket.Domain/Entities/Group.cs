@@ -8,4 +8,15 @@ public class Group : BaseEntity
 
     public ICollection<GroupMembership> Memberships { get; private set; } = new List<GroupMembership>();
     public ICollection<Market> Markets { get; private set; } = new List<Market>();
+
+    public static Group Create(string name, string? description, Guid ownerId)
+    {
+        return new Group { Name = name, Description = description, OwnerId = ownerId };
+    }
+
+    public void Update(string name, string? description)
+    {
+        Name = name;
+        Description = description;
+    }
 }

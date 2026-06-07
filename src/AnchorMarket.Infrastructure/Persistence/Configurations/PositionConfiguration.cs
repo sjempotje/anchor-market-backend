@@ -20,5 +20,17 @@ public class PositionConfiguration : IEntityTypeConfiguration<Position>
         builder.Property(p => p.Shares)
             .HasPrecision(18, 6)
             .IsRequired();
+
+        builder.Property(p => p.EntryPrice)
+            .HasPrecision(18, 6)
+            .IsRequired();
+
+        builder.Property(p => p.FairValueAtEntry)
+            .HasPrecision(18, 6)
+            .IsRequired();
+
+        builder.Property(p => p.CurrentFairValue)
+            .HasPrecision(18, 6)
+            .IsRequired();
     }
 }

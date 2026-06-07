@@ -7,4 +7,14 @@ public class GroupMembership : BaseEntity
     public DateTimeOffset JoinedAt { get; private set; } = DateTimeOffset.UtcNow;
 
     public Group Group { get; private set; } = null!;
+
+    public static GroupMembership Create(Guid userId, Guid groupId)
+    {
+        return new GroupMembership
+        {
+            UserId = userId,
+            GroupId = groupId,
+            JoinedAt = DateTimeOffset.UtcNow
+        };
+    }
 }

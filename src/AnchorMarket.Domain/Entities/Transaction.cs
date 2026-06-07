@@ -14,4 +14,26 @@ public class Transaction : BaseEntity
     public Guid? PositionId { get; private set; }
 
     public Wallet Wallet { get; private set; } = null!;
+
+    public static Transaction CreateDebit(Guid walletId, decimal amount, string? description = null)
+    {
+        return new Transaction
+        {
+            WalletId = walletId,
+            Amount = amount,
+            Type = TransactionType.Debit,
+            Description = description
+        };
+    }
+
+    public static Transaction CreateCredit(Guid walletId, decimal amount, string? description = null)
+    {
+        return new Transaction
+        {
+            WalletId = walletId,
+            Amount = amount,
+            Type = TransactionType.Credit,
+            Description = description
+        };
+    }
 }

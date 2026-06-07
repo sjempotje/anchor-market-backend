@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using AnchorMarket.Application;
 using AnchorMarket.Infrastructure;
 using AnchorMarket.Infrastructure.Persistence;
@@ -10,7 +11,9 @@ builder.Services
     .AddApplication()
     .AddInfrastructure(builder.Configuration);
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
@@ -28,6 +31,11 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
-app.UseHttpsRedirection();
+
+if (!app.Environment.IsEnvironment("Testing"))
+    app.UseHttpsRedirection();
+
 app.MapControllers();
 app.Run();
+
+public partial class Program { }

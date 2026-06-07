@@ -11,7 +11,8 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     {
     }
 
-    public DbSet<Product> Products => Set<Product>();
+    public DbSet<User> Users => Set<User>();
+    
     public DbSet<Market> Markets => Set<Market>();
     public DbSet<Outcome> Outcomes => Set<Outcome>();
     public DbSet<Group> Groups => Set<Group>();
@@ -20,6 +21,12 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<Wallet> Wallets => Set<Wallet>();
     public DbSet<Transaction> Transactions => Set<Transaction>();
     public DbSet<MarketResolution> MarketResolutions => Set<MarketResolution>();
+    
+    /// <summary>Limit orders placed by users for trading shares.</summary>
+    public DbSet<LimitOrder> LimitOrders => Set<LimitOrder>();
+    
+    /// <summary>Trade executions resulting from order matching.</summary>
+    public DbSet<TradeExecution> TradeExecutions => Set<TradeExecution>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
