@@ -28,6 +28,10 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     /// <summary>Trade executions resulting from order matching.</summary>
     public DbSet<TradeExecution> TradeExecutions => Set<TradeExecution>();
 
+    public DbSet<Session> Sessions => Set<Session>();
+    public DbSet<Account> Accounts => Set<Account>();
+    public DbSet<Verification> Verifications => Set<Verification>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);

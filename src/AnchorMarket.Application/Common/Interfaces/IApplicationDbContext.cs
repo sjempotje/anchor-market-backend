@@ -23,5 +23,9 @@ public interface IApplicationDbContext
     /// <summary>Trade executions resulting from order matching.</summary>
     DbSet<TradeExecution> TradeExecutions { get; }
 
+    DbSet<Session> Sessions { get; }
+    DbSet<Account> Accounts { get; }
+    DbSet<Verification> Verifications { get; }
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

@@ -25,7 +25,11 @@ public class GetUserProfileQueryHandler : IRequestHandler<GetUserProfileQuery, U
         return new UserDto(
             user.Id,
             user.Username,
+            user.Name,
             user.Email,
-            user.CreatedAt);
+            user.EmailVerified,
+            user.Image,
+            user.CreatedAt,
+            user.UpdatedAt);
     }
 }

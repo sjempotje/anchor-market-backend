@@ -9,8 +9,13 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
     public void Configure(EntityTypeBuilder<User> builder)
     {
         builder.HasKey(u => u.Id);
+        builder.Property(u => u.Id).HasColumnName("id");
 
         builder.Property(u => u.Username)
+            .HasMaxLength(100)
+            .HasColumnType("varchar(100)");
+
+        builder.Property(u => u.Name)
             .IsRequired()
             .HasMaxLength(100)
             .HasColumnType("varchar(100)");
@@ -19,6 +24,13 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .IsRequired()
             .HasMaxLength(255)
             .HasColumnType("varchar(255)");
+
+        builder.Property(u => u.EmailVerified)
+            .IsRequired()
+            .HasDefaultValue(false);
+
+        builder.Property(u => u.Image)
+            .HasMaxLength(500);
 
         builder.HasIndex(u => u.Username)
             .IsUnique()
@@ -31,6 +43,16 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.HasOne(u => u.Wallet)
             .WithOne()
             .HasForeignKey<Wallet>(w => w.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasMany(u => u.Sessions)
+            .WithOne(s => s.User)
+            .HasForeignKey(s => s.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasMany(u => u.Accounts)
+            .WithOne(a => a.User)
+            .HasForeignKey(a => a.UserId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }

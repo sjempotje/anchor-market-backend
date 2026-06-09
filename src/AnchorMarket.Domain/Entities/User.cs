@@ -6,13 +6,19 @@ public class User : BaseEntity
     private static readonly int MaxUsernameLength = 100;
     private static readonly int MaxEmailLength = 255;
 
-    public string Username { get; private set; } = string.Empty;
+    public string? Username { get; private set; }
+    public string Name { get; private set; } = string.Empty;
     public string Email { get; private set; } = string.Empty;
+    public bool EmailVerified { get; private set; }
+    public string? Image { get; private set; }
 
     /// <summary>
     /// Navigation property to the user's wallet.
     /// </summary>
     public Wallet? Wallet { get; private set; }
+
+    public ICollection<Session> Sessions { get; private set; } = new List<Session>();
+    public ICollection<Account> Accounts { get; private set; } = new List<Account>();
 
     /// <summary>
     /// Static factory method to create a new user with validation.
@@ -34,6 +40,7 @@ public class User : BaseEntity
         return new User
         {
             Username = username.Trim(),
+            Name = username.Trim(),
             Email = email.Trim().ToLowerInvariant()
         };
     }
@@ -56,6 +63,7 @@ public class User : BaseEntity
             throw new ArgumentException($"Email cannot exceed {MaxEmailLength} characters.", nameof(email));
 
         Username = username.Trim();
+        Name = username.Trim();
         Email = email.Trim().ToLowerInvariant();
         UpdatedAt = DateTimeOffset.UtcNow;
     }

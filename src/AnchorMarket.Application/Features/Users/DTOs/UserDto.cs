@@ -2,6 +2,10 @@ namespace AnchorMarket.Application.Features.Users.DTOs;
 
 public record UserDto(
     Guid Id,
-    string Username,
+    string? Username,
+    string Name,
     string Email,
-    DateTimeOffset CreatedAt);
+    bool EmailVerified,
+    string? Image,
+    DateTimeOffset CreatedAt,
+    DateTimeOffset? UpdatedAt);
