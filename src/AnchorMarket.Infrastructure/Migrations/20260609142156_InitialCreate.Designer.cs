@@ -9,11 +9,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace AnchorMarket.Infrastructure.Persistence.Migrations
+namespace AnchorMarket.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260520111149_AddUsersTable")]
-    partial class AddUsersTable
+    [Migration("20260609142156_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -226,49 +226,6 @@ namespace AnchorMarket.Infrastructure.Persistence.Migrations
                     b.ToTable("MarketResolutions");
                 });
 
-            modelBuilder.Entity("AnchorMarket.Domain.Entities.OrderBookEntry", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("MarketId")
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("OrderCount")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("OutcomeId")
-                        .HasColumnType("uuid");
-
-                    b.Property<decimal>("Price")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("numeric(18,6)");
-
-                    b.Property<string>("Side")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<decimal>("TotalQuantity")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("numeric(18,6)");
-
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("OutcomeId");
-
-                    b.HasIndex("MarketId", "OutcomeId", "Price", "Side")
-                        .IsUnique();
-
-                    b.ToTable("OrderBookEntries");
-                });
-
             modelBuilder.Entity("AnchorMarket.Domain.Entities.Outcome", b =>
                 {
                     b.Property<Guid>("Id")
@@ -339,37 +296,6 @@ namespace AnchorMarket.Infrastructure.Persistence.Migrations
                     b.HasIndex("OutcomeId");
 
                     b.ToTable("Positions");
-                });
-
-            modelBuilder.Entity("AnchorMarket.Domain.Entities.Product", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<decimal>("Price")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)");
-
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Products");
                 });
 
             modelBuilder.Entity("AnchorMarket.Domain.Entities.TradeExecution", b =>
@@ -581,25 +507,6 @@ namespace AnchorMarket.Infrastructure.Persistence.Migrations
                     b.Navigation("Market");
 
                     b.Navigation("WinningOutcome");
-                });
-
-            modelBuilder.Entity("AnchorMarket.Domain.Entities.OrderBookEntry", b =>
-                {
-                    b.HasOne("AnchorMarket.Domain.Entities.Market", "Market")
-                        .WithMany()
-                        .HasForeignKey("MarketId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("AnchorMarket.Domain.Entities.Outcome", "Outcome")
-                        .WithMany()
-                        .HasForeignKey("OutcomeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Market");
-
-                    b.Navigation("Outcome");
                 });
 
             modelBuilder.Entity("AnchorMarket.Domain.Entities.Outcome", b =>

@@ -3,42 +3,14 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace AnchorMarket.Infrastructure.Persistence.Migrations
+namespace AnchorMarket.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class AddPredictionMarketEntities : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AlterColumn<decimal>(
-                name: "Price",
-                table: "Products",
-                type: "numeric(18,2)",
-                precision: 18,
-                scale: 2,
-                nullable: false,
-                oldClrType: typeof(decimal),
-                oldType: "numeric");
-
-            migrationBuilder.AlterColumn<string>(
-                name: "Name",
-                table: "Products",
-                type: "character varying(200)",
-                maxLength: 200,
-                nullable: false,
-                oldClrType: typeof(string),
-                oldType: "text");
-
-            migrationBuilder.AlterColumn<string>(
-                name: "Description",
-                table: "Products",
-                type: "character varying(2000)",
-                maxLength: 2000,
-                nullable: false,
-                oldClrType: typeof(string),
-                oldType: "text");
-
             migrationBuilder.CreateTable(
                 name: "Groups",
                 columns: table => new
@@ -56,18 +28,18 @@ namespace AnchorMarket.Infrastructure.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Wallets",
+                name: "Users",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Balance = table.Column<decimal>(type: "numeric(18,6)", precision: 18, scale: 6, nullable: false),
+                    Username = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false),
+                    Email = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: false),
                     CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Wallets", x => x.Id);
+                    table.PrimaryKey("PK_Users", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -119,6 +91,48 @@ namespace AnchorMarket.Infrastructure.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Wallets",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Balance = table.Column<decimal>(type: "numeric(18,6)", precision: 18, scale: 6, nullable: false),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Wallets", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Wallets_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Outcomes",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    MarketId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Title = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Outcomes", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Outcomes_Markets_MarketId",
+                        column: x => x.MarketId,
+                        principalTable: "Markets",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Transactions",
                 columns: table => new
                 {
@@ -143,22 +157,37 @@ namespace AnchorMarket.Infrastructure.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Outcomes",
+                name: "LimitOrders",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     MarketId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Title = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    OutcomeId = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Side = table.Column<string>(type: "text", nullable: false),
+                    Price = table.Column<decimal>(type: "numeric(18,6)", precision: 18, scale: 6, nullable: false),
+                    Quantity = table.Column<decimal>(type: "numeric(18,6)", precision: 18, scale: 6, nullable: false),
+                    FilledQuantity = table.Column<decimal>(type: "numeric(18,6)", precision: 18, scale: 6, nullable: false),
+                    TotalCost = table.Column<decimal>(type: "numeric(18,6)", precision: 18, scale: 6, nullable: false),
+                    Type = table.Column<string>(type: "text", nullable: false),
+                    Status = table.Column<string>(type: "text", nullable: false),
+                    ExpiresAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Outcomes", x => x.Id);
+                    table.PrimaryKey("PK_LimitOrders", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Outcomes_Markets_MarketId",
+                        name: "FK_LimitOrders_Markets_MarketId",
                         column: x => x.MarketId,
                         principalTable: "Markets",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_LimitOrders_Outcomes_OutcomeId",
+                        column: x => x.OutcomeId,
+                        principalTable: "Outcomes",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -201,6 +230,9 @@ namespace AnchorMarket.Infrastructure.Persistence.Migrations
                     OutcomeId = table.Column<Guid>(type: "uuid", nullable: false),
                     Amount = table.Column<decimal>(type: "numeric(18,6)", precision: 18, scale: 6, nullable: false),
                     Shares = table.Column<decimal>(type: "numeric(18,6)", precision: 18, scale: 6, nullable: false),
+                    EntryPrice = table.Column<decimal>(type: "numeric(18,6)", precision: 18, scale: 6, nullable: false),
+                    FairValueAtEntry = table.Column<decimal>(type: "numeric(18,6)", precision: 18, scale: 6, nullable: false),
+                    CurrentFairValue = table.Column<decimal>(type: "numeric(18,6)", precision: 18, scale: 6, nullable: false),
                     CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
                 },
@@ -215,6 +247,46 @@ namespace AnchorMarket.Infrastructure.Persistence.Migrations
                         onDelete: ReferentialAction.Restrict);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "TradeExecutions",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    LimitOrderId = table.Column<Guid>(type: "uuid", nullable: false),
+                    MarketId = table.Column<Guid>(type: "uuid", nullable: false),
+                    OutcomeId = table.Column<Guid>(type: "uuid", nullable: false),
+                    BuyerOrderId = table.Column<Guid>(type: "uuid", nullable: false),
+                    SellerOrderId = table.Column<Guid>(type: "uuid", nullable: false),
+                    InitiatorUserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Shares = table.Column<decimal>(type: "numeric(18,6)", precision: 18, scale: 6, nullable: false),
+                    ExecutedPrice = table.Column<decimal>(type: "numeric(18,6)", precision: 18, scale: 6, nullable: false),
+                    TotalValue = table.Column<decimal>(type: "numeric(18,6)", precision: 18, scale: 6, nullable: false),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TradeExecutions", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_TradeExecutions_LimitOrders_LimitOrderId",
+                        column: x => x.LimitOrderId,
+                        principalTable: "LimitOrders",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_TradeExecutions_Markets_MarketId",
+                        column: x => x.MarketId,
+                        principalTable: "Markets",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_TradeExecutions_Outcomes_OutcomeId",
+                        column: x => x.OutcomeId,
+                        principalTable: "Outcomes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_GroupMemberships_GroupId",
                 table: "GroupMemberships",
@@ -225,6 +297,16 @@ namespace AnchorMarket.Infrastructure.Persistence.Migrations
                 table: "GroupMemberships",
                 columns: new[] { "UserId", "GroupId" },
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_LimitOrders_MarketId",
+                table: "LimitOrders",
+                column: "MarketId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_LimitOrders_OutcomeId",
+                table: "LimitOrders",
+                column: "OutcomeId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_MarketResolutions_MarketId",
@@ -253,9 +335,36 @@ namespace AnchorMarket.Infrastructure.Persistence.Migrations
                 column: "OutcomeId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_TradeExecutions_LimitOrderId",
+                table: "TradeExecutions",
+                column: "LimitOrderId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TradeExecutions_MarketId",
+                table: "TradeExecutions",
+                column: "MarketId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TradeExecutions_OutcomeId",
+                table: "TradeExecutions",
+                column: "OutcomeId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Transactions_WalletId",
                 table: "Transactions",
                 column: "WalletId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_Email",
+                table: "Users",
+                column: "Email",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_Username",
+                table: "Users",
+                column: "Username",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Wallets_UserId",
@@ -277,47 +386,28 @@ namespace AnchorMarket.Infrastructure.Persistence.Migrations
                 name: "Positions");
 
             migrationBuilder.DropTable(
+                name: "TradeExecutions");
+
+            migrationBuilder.DropTable(
                 name: "Transactions");
+
+            migrationBuilder.DropTable(
+                name: "LimitOrders");
+
+            migrationBuilder.DropTable(
+                name: "Wallets");
 
             migrationBuilder.DropTable(
                 name: "Outcomes");
 
             migrationBuilder.DropTable(
-                name: "Wallets");
+                name: "Users");
 
             migrationBuilder.DropTable(
                 name: "Markets");
 
             migrationBuilder.DropTable(
                 name: "Groups");
-
-            migrationBuilder.AlterColumn<decimal>(
-                name: "Price",
-                table: "Products",
-                type: "numeric",
-                nullable: false,
-                oldClrType: typeof(decimal),
-                oldType: "numeric(18,2)",
-                oldPrecision: 18,
-                oldScale: 2);
-
-            migrationBuilder.AlterColumn<string>(
-                name: "Name",
-                table: "Products",
-                type: "text",
-                nullable: false,
-                oldClrType: typeof(string),
-                oldType: "character varying(200)",
-                oldMaxLength: 200);
-
-            migrationBuilder.AlterColumn<string>(
-                name: "Description",
-                table: "Products",
-                type: "text",
-                nullable: false,
-                oldClrType: typeof(string),
-                oldType: "character varying(2000)",
-                oldMaxLength: 2000);
         }
     }
 }
