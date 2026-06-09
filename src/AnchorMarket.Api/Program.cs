@@ -14,18 +14,28 @@ builder.Services
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
         options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
-builder.Services.AddOpenApi();
+        
+builder.Services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer((doc, ctx, _) =>
+    {
+        doc.Servers = [new() { Url = "http://localhost:5079" }];
+        return Task.CompletedTask;
+    });
+});
 
 var app = builder.Build();
 
+app.MapOpenApi();
+
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
     app.MapScalarApiReference();
 }
 
-using (var scope = app.Services.CreateScope())
+if (builder.Configuration.GetConnectionString("DefaultConnection") is not null)
 {
+    using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     db.Database.EnsureCreated();
 }

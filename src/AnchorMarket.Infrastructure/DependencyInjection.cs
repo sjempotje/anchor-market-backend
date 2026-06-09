@@ -15,9 +15,11 @@ public static class DependencyInjection
         services.AddDbContext<ApplicationDbContext>((sp, options) =>
         {
             var config = sp.GetRequiredService<IConfiguration>();
-            var connectionString = config.GetConnectionString("DefaultConnection")!;
+            var connectionString = config.GetConnectionString("DefaultConnection");
 
-            if (connectionString.StartsWith("DataSource="))
+            if (connectionString is null)
+                options.UseNpgsql();
+            else if (connectionString.StartsWith("DataSource="))
                 options.UseSqlite(connectionString);
             else
                 options.UseNpgsql(connectionString);
