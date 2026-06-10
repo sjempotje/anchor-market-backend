@@ -35,7 +35,7 @@ jobs:
       - name: Upload OpenAPI document
         uses: actions/upload-artifact@v4
         with:
-          name: openapi-document
+          name: openapi-spec
           path: src/AnchorMarket.Api/obj/AnchorMarket.Api.json
 
       - name: Test
@@ -158,3 +158,42 @@ jobs:
             --tag ghcr.io/${{ github.repository_owner }}/anchormarket:${{ github.sha }} \
             ghcr.io/${{ github.repository_owner }}/anchormarket:${{ github.sha }}-amd64 \
             ghcr.io/${{ github.repository_owner }}/anchormarket:${{ github.sha }}-arm64
+
+  dispatch-sdks:
+    needs: [build-amd64, build-arm64]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        sdk:
+          - name: typescript
+            repo: sjempotje/anchormarket-sdk-typescript
+            generator: typescript
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download OpenAPI artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: openapi-spec
+          path: openapi
+
+      - name: Dispatch SDK generation
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.SDK_REPO_TOKEN }}
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: "${{ matrix.repo.split('/')[1] }}",
+              workflow_id: "generate-sdk.yml",
+              ref: "main",
+              inputs: {
+                generator: "${{ matrix.generator }}",
+                openapi_path: "openapi/AnchorMarket.Api.json",
+                source_repo: "${{ github.repository }}",
+                source_sha: "${{ github.sha }}"
+              }
+            });
