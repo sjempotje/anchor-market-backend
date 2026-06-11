@@ -172,7 +172,7 @@ jobs:
           cache-to: type=gha,mode=max,scope=${{ matrix.suffix }}
 
   merge:
-    needs: publish
+    needs: [publish, tag]
 
     if: github.event_name == 'release' || needs.publish.result == 'success'
 
@@ -193,14 +193,17 @@ jobs:
       - name: Create and push multi-arch manifest
         run: |
           docker buildx imagetools create \
+            --tag ghcr.io/${{ github.repository_owner }}/anchormarket:${{ needs.tag.outputs.version }} \
             --tag ghcr.io/${{ github.repository_owner }}/anchormarket:latest \
             --tag ghcr.io/${{ github.repository_owner }}/anchormarket:${{ github.sha }} \
             ghcr.io/${{ github.repository_owner }}/anchormarket:${{ github.sha }}-amd64 \
             ghcr.io/${{ github.repository_owner }}/anchormarket:${{ github.sha }}-arm64
 
   release:
-    needs: [build-amd64, build-arm64]
-    if: github.event_name == 'release'
+    needs: [build-amd64, build-arm64, tag]
+    if: >
+      github.event_name == 'release' ||
+      (github.event_name == 'push' && needs.tag.outputs.tag_created == 'true')
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -213,15 +216,24 @@ jobs:
           path: openapi
 
       - name: Upload OpenAPI spec to release
+        if: github.event_name == 'release'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.event.release.tag_name }}
           files: openapi/AnchorMarket.Api.json
           update_release: true
 
+      - name: Create release for new tag
+        if: github.event_name == 'push'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.tag.outputs.version }}
+          files: openapi/AnchorMarket.Api.json
+          generate_release_notes: true
+
   dispatch-sdks:
-    needs: release
-    if: github.event_name == 'release'
+    needs: [release, tag]
+    if: needs.release.result == 'success'
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -243,6 +255,6 @@ jobs:
               inputs: {
                 generator: "${{ matrix.sdk.generator }}",
                 source_repo: "${{ github.repository }}",
-                source_sha: "${{ github.sha }}"
+                source_version: "${{ needs.tag.outputs.version }}"
               }
             });
