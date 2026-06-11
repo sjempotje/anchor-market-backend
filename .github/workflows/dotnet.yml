@@ -89,35 +89,45 @@ jobs:
 
   tag:
     needs: [build-amd64, build-arm64]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    if: github.event_name == 'push' || github.event_name == 'release'
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    outputs:
+      version: ${{ steps.handle_tag.outputs.version }}
+      tag_created: ${{ steps.handle_tag.outputs.tag_created }}
 
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Extract version
-        id: version
+      - name: Extract version and create tag if missing
+        id: handle_tag
         run: |
           VERSION=$(grep -oP '<Version>\K[^<]+' src/AnchorMarket.Api/AnchorMarket.Api.csproj)
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-
-      - name: Create and push tag
-        run: |
-          if ! git tag --list | grep -qF "${{ steps.version.outputs.version }}"; then
-            git tag "${{ steps.version.outputs.version }}"
-            git push origin "${{ steps.version.outputs.version }}"
+          if [ "${{ github.event_name }}" = "push" ]; then
+            if git tag --list | grep -qF "$VERSION"; then
+              echo "tag_created=false" >> "$GITHUB_OUTPUT"
+            else
+              git tag "$VERSION"
+              git push origin "$VERSION"
+              echo "tag_created=true" >> "$GITHUB_OUTPUT"
+            fi
+          else
+            echo "tag_created=false" >> "$GITHUB_OUTPUT"
           fi
 
   publish:
     needs:
       - build-amd64
       - build-arm64
+      - tag
 
-    if: github.event_name == 'release'
+    if: >
+      github.event_name == 'release' ||
+      (github.event_name == 'push' && needs.tag.outputs.tag_created == 'true')
 
     permissions:
       contents: read
@@ -155,14 +165,16 @@ jobs:
           file: src/AnchorMarket.Api/Dockerfile
           push: true
           platforms: ${{ matrix.platform }}
-          tags: ghcr.io/${{ github.repository_owner }}/anchormarket:${{ github.sha }}-${{ matrix.suffix }}
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/anchormarket:${{ needs.tag.outputs.version }}-${{ matrix.suffix }}
+            ghcr.io/${{ github.repository_owner }}/anchormarket:${{ github.sha }}-${{ matrix.suffix }}
           cache-from: type=gha,scope=${{ matrix.suffix }}
           cache-to: type=gha,mode=max,scope=${{ matrix.suffix }}
 
   merge:
     needs: publish
 
-    if: github.event_name == 'release'
+    if: github.event_name == 'release' || needs.publish.result == 'success'
 
     runs-on: ubuntu-latest
 
