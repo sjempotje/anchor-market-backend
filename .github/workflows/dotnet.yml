@@ -5,6 +5,8 @@ on:
     branches: [ "master" ]
   pull_request:
     branches: [ "master" ]
+  release:
+    types: [published]
 
 jobs:
   build-amd64:
@@ -161,7 +163,7 @@ jobs:
 
   release:
     needs: [build-amd64, build-arm64]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    if: github.event_name == 'release'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -173,16 +175,16 @@ jobs:
           name: openapi-spec
           path: openapi
 
-      - name: Create Release and upload OpenAPI spec
+      - name: Upload OpenAPI spec to release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: sha-${{ github.sha }}
-          name: Release ${{ github.sha }}
+          tag_name: ${{ github.event.release.tag_name }}
           files: openapi/AnchorMarket.Api.json
+          update_release: true
 
   dispatch-sdks:
     needs: release
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    if: github.event_name == 'release'
     runs-on: ubuntu-latest
     strategy:
       matrix:

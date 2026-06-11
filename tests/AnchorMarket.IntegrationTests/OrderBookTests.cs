@@ -15,6 +15,7 @@ internal record TradeExecution(
     decimal FilledQuantity,
     decimal ExecutedPrice);
 
+[Collection("IntegrationTests")]
 public class OrderBookTests(CustomWebApplicationFactory factory) : TestBase(factory)
 {
     [Fact]

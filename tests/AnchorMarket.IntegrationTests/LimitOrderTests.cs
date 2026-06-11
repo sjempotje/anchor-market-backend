@@ -5,6 +5,7 @@ using Xunit;
 
 namespace AnchorMarket.IntegrationTests;
 
+[Collection("IntegrationTests")]
 public class LimitOrderTests(CustomWebApplicationFactory factory) : TestBase(factory)
 {
     [Fact]

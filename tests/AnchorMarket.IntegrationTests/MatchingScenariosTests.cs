@@ -8,6 +8,7 @@ using Xunit;
 
 namespace AnchorMarket.IntegrationTests;
 
+[Collection("IntegrationTests")]
 public class MatchingScenarios(CustomWebApplicationFactory factory) : TestBase(factory)
 {
     /// <summary>
