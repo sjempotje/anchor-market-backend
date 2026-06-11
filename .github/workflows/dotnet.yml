@@ -87,12 +87,37 @@ jobs:
           path: |
             **/TestResults/*.trx
 
+  tag:
+    needs: [build-amd64, build-arm64]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract version
+        id: version
+        run: |
+          VERSION=$(grep -oP '<Version>\K[^<]+' src/AnchorMarket.Api/AnchorMarket.Api.csproj)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Create and push tag
+        run: |
+          if ! git tag --list | grep -qF "${{ steps.version.outputs.version }}"; then
+            git tag "${{ steps.version.outputs.version }}"
+            git push origin "${{ steps.version.outputs.version }}"
+          fi
+
   publish:
     needs:
       - build-amd64
       - build-arm64
 
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    if: github.event_name == 'release'
 
     permissions:
       contents: read
@@ -137,7 +162,7 @@ jobs:
   merge:
     needs: publish
 
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    if: github.event_name == 'release'
 
     runs-on: ubuntu-latest
 
