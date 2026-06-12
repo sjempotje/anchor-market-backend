@@ -67,7 +67,8 @@ public class MatchingScenarios(CustomWebApplicationFactory factory) : TestBase(f
         Assert.NotNull(bobOrder);
         Assert.Equal(Domain.Enums.OrderStatus.Filled, bobOrder.Status);
 
-        var alicePosResponse = await Client.GetAsync($"/api/positions/by-market/{marketId}?userId={alice}");
+        TestAuthHandler.CurrentUserId = alice;
+        var alicePosResponse = await Client.GetAsync($"/api/positions/by-market/{marketId}");
         alicePosResponse.EnsureSuccessStatusCode();
         var alicePositions = await alicePosResponse.Content.ReadFromJsonAsync<List<PositionDto>>();
         Assert.NotNull(alicePositions);
@@ -75,7 +76,8 @@ public class MatchingScenarios(CustomWebApplicationFactory factory) : TestBase(f
         // Alice started with 200 shares (100 / 0.5), sold 80 → 120 remaining
         Assert.Equal(120m, aliceYesPos.Shares);
 
-        var bobPosResponse = await Client.GetAsync($"/api/positions/by-market/{marketId}?userId={bob}");
+        TestAuthHandler.CurrentUserId = bob;
+        var bobPosResponse = await Client.GetAsync($"/api/positions/by-market/{marketId}");
         bobPosResponse.EnsureSuccessStatusCode();
         var bobPositions = await bobPosResponse.Content.ReadFromJsonAsync<List<PositionDto>>();
         Assert.NotNull(bobPositions);
@@ -122,13 +124,15 @@ public class MatchingScenarios(CustomWebApplicationFactory factory) : TestBase(f
         var bobWalletBefore = await Client.GetFromJsonAsync<WalletDto>($"/api/wallets/{bobWalletId}");
         Assert.NotNull(bobWalletBefore);
 
+        TestAuthHandler.CurrentUserId = alice;
         var closeAliceResponse = await Client.PostAsync(
-            $"/api/positions/{alicePositionId}/close?userId={alice}", null);
+            $"/api/positions/{alicePositionId}/close", null);
         Assert.Equal(HttpStatusCode.NoContent, closeAliceResponse.StatusCode);
 
+        TestAuthHandler.CurrentUserId = bob;
         var bobPosId = bobPositions.First(p => p.OutcomeId == yesId).Id;
         var closeBobResponse = await Client.PostAsync(
-            $"/api/positions/{bobPosId}/close?userId={bob}", null);
+            $"/api/positions/{bobPosId}/close", null);
         Assert.Equal(HttpStatusCode.NoContent, closeBobResponse.StatusCode);
 
         // Verify payouts: both won, so both should have more money after close

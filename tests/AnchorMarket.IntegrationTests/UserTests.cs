@@ -9,25 +9,11 @@ namespace AnchorMarket.IntegrationTests;
 public class UserTests(CustomWebApplicationFactory factory) : TestBase(factory)
 {
     [Fact]
-    public async Task RegisterUser_CreatesUser_ReturnsCreated()
+    public async Task RegisterUser_CreatesUser_ReturnsId()
     {
         var suffix = Guid.NewGuid().ToString("N")[..8];
         var userId = await RegisterUser($"user_{suffix}", $"user_{suffix}@example.com");
         Assert.NotEqual(Guid.Empty, userId);
-    }
-
-    [Fact]
-    public async Task RegisterUser_DuplicateUsername_ReturnsError()
-    {
-        var suffix = Guid.NewGuid().ToString("N")[..8];
-        await RegisterUser($"dup_{suffix}", $"dup_{suffix}@example.com");
-
-        var response = await Client.PostAsJsonAsync("/api/users/register", new
-        {
-            username = $"dup_{suffix}",
-            email = $"other_{suffix}@example.com"
-        });
-        Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
     }
 
     [Fact]

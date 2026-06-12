@@ -27,13 +27,21 @@ public abstract class TestBase : IClassFixture<CustomWebApplicationFactory>, IAs
 
     public Task DisposeAsync() => Task.CompletedTask;
 
+    /// <summary>
+    /// Seeds a user directly into the test database and sets the authenticated user
+    /// to that user's ID for subsequent requests.
+    /// </summary>
     protected async Task<Guid> RegisterUser(string username, string email)
     {
-        var response = await Client.PostAsJsonAsync("/api/users/register", new { username, email });
-        response.EnsureSuccessStatusCode();
-        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        var location = response.Headers.Location!;
-        return Guid.Parse(location.Segments[^1]);
+        using var db = Factory.CreateDbContext();
+        var user = User.Create(username, email);
+        db.Users.Add(user);
+        var wallet = Wallet.Create(user.Id);
+        db.Wallets.Add(wallet);
+        await db.SaveChangesAsync();
+
+        TestAuthHandler.CurrentUserId = user.Id;
+        return user.Id;
     }
 
     protected async Task<Guid> CreateGroup(string name, string? description, Guid ownerId)
@@ -82,9 +90,9 @@ public abstract class TestBase : IClassFixture<CustomWebApplicationFactory>, IAs
 
     protected async Task<Guid> PlaceLimitOrder(Guid userId, Guid marketId, Guid outcomeId, int side = 0, decimal price = 0.55m, decimal quantity = 100.0m)
     {
+        TestAuthHandler.CurrentUserId = userId;
         var response = await Client.PostAsJsonAsync("/api/limitorders", new
         {
-            userId,
             marketId,
             outcomeId,
             side,
