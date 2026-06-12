@@ -1,12 +1,14 @@
 using AnchorMarket.Application.Features.Markets.Commands;
 using AnchorMarket.Application.Features.Markets.Queries;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AnchorMarket.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class MarketsController : ControllerBase
 {
     private readonly ISender _sender;
@@ -17,6 +19,7 @@ public class MarketsController : ControllerBase
     }
 
     [HttpGet]
+    [AllowAnonymous]
     public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
     {
         var markets = await _sender.Send(new GetMarketsQuery(), cancellationToken);
@@ -24,6 +27,7 @@ public class MarketsController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
     {
         var market = await _sender.Send(new GetMarketByIdQuery(id), cancellationToken);

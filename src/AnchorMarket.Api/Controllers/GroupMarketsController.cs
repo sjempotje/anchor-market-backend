@@ -1,12 +1,15 @@
 using AnchorMarket.Application.Features.GroupMarkets.Commands;
 using AnchorMarket.Application.Features.GroupMarkets.Queries;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace AnchorMarket.Api.Controllers;
 
 [ApiController]
 [Route("api/group-markets")]
+[Authorize]
 public class GroupMarketsController : ControllerBase
 {
     private readonly ISender _sender;
@@ -26,10 +29,10 @@ public class GroupMarketsController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetByGroup(
         [FromQuery] Guid groupId,
-        [FromQuery] Guid requestingUserId,
         CancellationToken cancellationToken)
     {
-        var markets = await _sender.Send(new GetGroupMarketsQuery(groupId, requestingUserId), cancellationToken);
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var markets = await _sender.Send(new GetGroupMarketsQuery(groupId, userId), cancellationToken);
         return Ok(markets);
     }
 
@@ -41,7 +44,7 @@ public class GroupMarketsController : ControllerBase
     }
 
     /// <summary>
-    /// Resolves a group market. The ResolverId must be a group member who is NOT the market creator.
+    /// Resolves a group market. The resolver must be a group member who is NOT the market creator.
     /// Two-person rule is enforced in the Application layer, not here.
     /// </summary>
     [HttpPost("{id:guid}/resolve")]

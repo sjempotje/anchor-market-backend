@@ -3,6 +3,7 @@ using MediatR;
 using AnchorMarket.Application.Features.Orders.DTOs;
 using AnchorMarket.Application.Features.Orders.Queries;
 using AnchorMarket.Domain.Enums;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -14,6 +15,7 @@ namespace AnchorMarket.Api.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class LimitOrdersController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -35,8 +37,10 @@ public class LimitOrdersController : ControllerBase
         [FromBody] PlaceLimitOrderRequest request,
         CancellationToken cancellationToken)
     {
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
         var command = new PlaceLimitOrderCommand(
-            request.UserId,
+            userId,
             request.MarketId,
             request.OutcomeId,
             request.Side,
@@ -59,10 +63,8 @@ public class LimitOrdersController : ControllerBase
         Guid orderId,
         CancellationToken cancellationToken)
     {
-        var userId = User.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier)
-            ?? throw new InvalidOperationException("User not authenticated.");
-
-        var command = new CancelLimitOrderCommand(orderId, Guid.Parse(userId));
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var command = new CancelLimitOrderCommand(orderId, userId);
         await _mediator.Send(command, cancellationToken);
 
         return NoContent();
@@ -78,17 +80,15 @@ public class LimitOrdersController : ControllerBase
         Guid orderId,
         CancellationToken cancellationToken)
     {
-        var userId = User.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier)
-            ?? throw new InvalidOperationException("User not authenticated.");
-
-        var query = new GetLimitOrderDetailQuery(orderId, Guid.Parse(userId));
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var query = new GetLimitOrderDetailQuery(orderId, userId);
         var order = await _mediator.Send(query, cancellationToken);
 
         return Ok(order);
     }
 
     /// <summary>
-    /// Retrieves limit orders for a specific market, optionally filtered by outcome and user.
+    /// Retrieves limit orders for a specific market, optionally filtered by outcome.
     /// </summary>
     [HttpGet("market/{marketId}")]
     [ProducesResponseType(typeof(IReadOnlyList<LimitOrderDto>), StatusCodes.Status200OK)]
@@ -98,10 +98,8 @@ public class LimitOrdersController : ControllerBase
         [FromQuery] Guid? outcomeId = null,
         CancellationToken cancellationToken = default)
     {
-        var userId = User.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier)
-            ?? throw new InvalidOperationException("User not authenticated.");
-
-        var query = new GetLimitOrdersByMarketQuery(marketId, outcomeId, Guid.Parse(userId));
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var query = new GetLimitOrdersByMarketQuery(marketId, outcomeId, userId);
         var orders = await _mediator.Send(query, cancellationToken);
 
         return Ok(orders);
@@ -112,7 +110,6 @@ public class LimitOrdersController : ControllerBase
 /// Request model for placing a limit order.
 /// </summary>
 public record PlaceLimitOrderRequest(
-    Guid UserId,
     Guid MarketId,
     Guid OutcomeId,
     OrderSide Side,

@@ -1,11 +1,13 @@
 using AnchorMarket.Application.Features.Wallets.Queries;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AnchorMarket.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class WalletsController : ControllerBase
 {
     private readonly ISender _sender;

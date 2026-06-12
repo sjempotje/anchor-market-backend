@@ -1,6 +1,7 @@
 using AnchorMarket.Application.Features.Positions.Commands;
 using AnchorMarket.Application.Features.Positions.Queries;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -8,6 +9,7 @@ namespace AnchorMarket.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class PositionsController : ControllerBase
 {
     private readonly ISender _sender;
@@ -18,6 +20,7 @@ public class PositionsController : ControllerBase
     }
 
     [HttpGet]
+    [AllowAnonymous]
     public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
     {
         var positions = await _sender.Send(new GetPositionsQuery(), cancellationToken);
@@ -30,14 +33,13 @@ public class PositionsController : ControllerBase
     [HttpGet("with-pnl")]
     public async Task<IActionResult> GetPositionsWithPnL(CancellationToken cancellationToken)
     {
-        var userId = User.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier)
-            ?? throw new InvalidOperationException("User not authenticated.");
-
-        var positions = await _sender.Send(new GetPositionsWithPnLQuery(Guid.Parse(userId)), cancellationToken);
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var positions = await _sender.Send(new GetPositionsWithPnLQuery(userId), cancellationToken);
         return Ok(positions);
     }
 
     [HttpGet("{id:guid}")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
     {
         var position = await _sender.Send(new GetPositionByIdQuery(id), cancellationToken);
@@ -45,8 +47,9 @@ public class PositionsController : ControllerBase
     }
 
     [HttpGet("by-market/{marketId:guid}")]
-    public async Task<IActionResult> GetByMarket(Guid marketId, [FromQuery] Guid userId, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetByMarket(Guid marketId, CancellationToken cancellationToken)
     {
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         var positions = await _sender.Send(new GetPositionsByMarketQuery(marketId, userId), cancellationToken);
         return Ok(positions);
     }
@@ -59,8 +62,9 @@ public class PositionsController : ControllerBase
     }
 
     [HttpPost("{id:guid}/close")]
-    public async Task<IActionResult> Close(Guid id, [FromQuery] Guid userId, CancellationToken cancellationToken)
+    public async Task<IActionResult> Close(Guid id, CancellationToken cancellationToken)
     {
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         await _sender.Send(new ClosePositionCommand(id, userId), cancellationToken);
         return NoContent();
     }

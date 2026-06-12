@@ -1,12 +1,14 @@
 using AnchorMarket.Application.Features.Groups.Commands;
 using AnchorMarket.Application.Features.Groups.Queries;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AnchorMarket.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class GroupsController : ControllerBase
 {
     private readonly ISender _sender;
@@ -17,6 +19,7 @@ public class GroupsController : ControllerBase
     }
 
     [HttpGet]
+    [AllowAnonymous]
     public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
     {
         var groups = await _sender.Send(new GetGroupsQuery(), cancellationToken);
@@ -24,6 +27,7 @@ public class GroupsController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
     {
         var group = await _sender.Send(new GetGroupByIdQuery(id), cancellationToken);

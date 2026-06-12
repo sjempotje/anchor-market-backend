@@ -2,6 +2,7 @@ using AnchorMarket.Application.Features.Orders.Commands;
 using MediatR;
 using AnchorMarket.Application.Features.Orders.DTOs;
 using AnchorMarket.Application.Features.Orders.Queries;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AnchorMarket.Api.Controllers;
@@ -62,6 +63,7 @@ public class OrderBooksController : ControllerBase
     /// This endpoint is intended for internal/testing use; consider securing it in production.
     /// </summary>
     [HttpPost("market/{marketId}/match")]
+    [Authorize]
     [ProducesResponseType(typeof(MatchingResult), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> MatchOrders(
