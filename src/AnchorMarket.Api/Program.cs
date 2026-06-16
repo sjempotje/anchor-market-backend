@@ -4,6 +4,8 @@ using AnchorMarket.Infrastructure;
 using AnchorMarket.Infrastructure.Persistence;
 using AnchorMarket.Api.Middleware;
 using Scalar.AspNetCore;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,6 +22,28 @@ builder.Services.AddOpenApi(options =>
     options.AddDocumentTransformer((doc, ctx, _) =>
     {
         doc.Servers = [new() { Url = "http://localhost:5079" }];
+        return Task.CompletedTask;
+    });
+
+    options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
+
+    options.AddOperationTransformer((operation, context, _) =>
+    {
+        var hasAuthorize = context.Description.ActionDescriptor
+            .EndpointMetadata
+            .OfType<AuthorizeAttribute>()
+            .Any();
+
+        if (hasAuthorize)
+        {
+            operation.Responses.TryAdd("401", new OpenApiResponse { Description = "Unauthorized" });
+            operation.Responses.TryAdd("403", new OpenApiResponse { Description = "Forbidden" });
+            operation.Security = [new OpenApiSecurityRequirement
+            {
+                [new OpenApiSecuritySchemeReference("Bearer")] = []
+            }];
+        }
+
         return Task.CompletedTask;
     });
 });
@@ -45,8 +69,8 @@ app.UseMiddleware<ExceptionHandlingMiddleware>();
 if (!app.Environment.IsEnvironment("Testing"))
     app.UseHttpsRedirection();
 
-app.UseAuthentication();
-app.UseAuthorization();
+    app.UseAuthentication();
+    app.UseAuthorization();
 
 app.MapControllers();
 app.Run();
