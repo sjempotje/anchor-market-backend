@@ -4,7 +4,6 @@ using AnchorMarket.Infrastructure;
 using AnchorMarket.Infrastructure.Persistence;
 using AnchorMarket.Api.Middleware;
 using Scalar.AspNetCore;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -26,26 +25,6 @@ builder.Services.AddOpenApi(options =>
     });
 
     options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
-
-    options.AddOperationTransformer((operation, context, _) =>
-    {
-        var hasAuthorize = context.Description.ActionDescriptor
-            .EndpointMetadata
-            .OfType<AuthorizeAttribute>()
-            .Any();
-
-        if (hasAuthorize)
-        {
-            operation.Responses.TryAdd("401", new OpenApiResponse { Description = "Unauthorized" });
-            operation.Responses.TryAdd("403", new OpenApiResponse { Description = "Forbidden" });
-            operation.Security = [new OpenApiSecurityRequirement
-            {
-                [new OpenApiSecuritySchemeReference("Bearer")] = []
-            }];
-        }
-
-        return Task.CompletedTask;
-    });
 });
 
 var app = builder.Build();
