@@ -2,13 +2,13 @@
 
     <PropertyGroup>
         <TargetFramework>net10.0</TargetFramework>
-        <Version>1.0.3</Version>
+        <Version>1.0.4</Version>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <RootNamespace>AnchorMarket.Api</RootNamespace>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-      <UserSecretsId>099d1540-3925-4bf2-9eaa-eba3a88558e6</UserSecretsId>
-  </PropertyGroup>
+        <UserSecretsId>099d1540-3925-4bf2-9eaa-eba3a88558e6</UserSecretsId>
+    </PropertyGroup>
 
     <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.7" />
