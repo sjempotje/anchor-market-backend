@@ -1,3 +1,4 @@
+using AnchorMarket.Application.Common.Exceptions;
 using AnchorMarket.Application.Common.Interfaces;
 using AnchorMarket.Application.Features.Wallets.DTOs;
 using AutoMapper;
@@ -7,22 +8,25 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AnchorMarket.Application.Features.Wallets.Queries;
 
-public record GetWalletTransactionsQuery(Guid WalletId) : IRequest<List<TransactionDto>>;
+public record GetWalletTransactionsQuery(Guid UserId, Guid CallerId) : IRequest<List<TransactionDto>>;
 
-public class GetWalletTransactionsQueryHandler : IRequestHandler<GetWalletTransactionsQuery, List<TransactionDto>>
+public class GetWalletTransactionsQueryHandler(IApplicationDbContext context, IMapper mapper)
+    : IRequestHandler<GetWalletTransactionsQuery, List<TransactionDto>>
 {
-    private readonly IApplicationDbContext _context;
-    private readonly IMapper _mapper;
-
-    public GetWalletTransactionsQueryHandler(IApplicationDbContext context, IMapper mapper)
+    public async Task<List<TransactionDto>> Handle(GetWalletTransactionsQuery request, CancellationToken cancellationToken)
     {
-        _context = context;
-        _mapper = mapper;
-    }
+        if (request.UserId != request.CallerId) throw new ForbiddenException("You do not own this wallet.");
 
-    public Task<List<TransactionDto>> Handle(GetWalletTransactionsQuery request, CancellationToken cancellationToken)
-        => _context.Transactions
-            .Where(t => t.WalletId == request.WalletId)
-            .ProjectTo<TransactionDto>(_mapper.ConfigurationProvider)
+        var walletId = await context.Wallets
+            .Where(w => w.UserId == request.UserId)
+            .Select(w => (Guid?)w.Id)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (walletId is null) return [];
+
+        return await context.Transactions
+            .Where(t => t.WalletId == walletId)
+            .ProjectTo<TransactionDto>(mapper.ConfigurationProvider)
             .ToListAsync(cancellationToken);
+    }
 }
