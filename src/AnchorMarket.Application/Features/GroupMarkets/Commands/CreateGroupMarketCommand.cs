@@ -7,6 +7,7 @@ using MediatR;
 
 namespace AnchorMarket.Application.Features.GroupMarkets.Commands;
 
+/// <summary>Command to create a market scoped to a group.</summary>
 public record CreateGroupMarketCommand(
     Guid GroupId,
     Guid CreatorId,
@@ -15,6 +16,7 @@ public record CreateGroupMarketCommand(
     DateTimeOffset ResolutionDeadline,
     IReadOnlyList<string> OutcomeTitles) : IRequest<Guid>;
 
+/// <summary>Handles creating a group market.</summary>
 public class CreateGroupMarketCommandHandler : IRequestHandler<CreateGroupMarketCommand, Guid>
 {
     private readonly IApplicationDbContext _context;
@@ -24,6 +26,7 @@ public class CreateGroupMarketCommandHandler : IRequestHandler<CreateGroupMarket
         _context = context;
     }
 
+    /// <summary>Creates the group market and returns its ID.</summary>
     public async Task<Guid> Handle(CreateGroupMarketCommand request, CancellationToken cancellationToken)
     {
         var group = await _context.Groups.FindAsync([request.GroupId], cancellationToken);

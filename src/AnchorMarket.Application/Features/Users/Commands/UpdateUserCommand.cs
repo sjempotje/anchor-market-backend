@@ -5,8 +5,10 @@ using MediatR;
 
 namespace AnchorMarket.Application.Features.Users.Commands;
 
+/// <summary>Command to update a user's profile.</summary>
 public record UpdateUserCommand(Guid UserId, string Username, string Email) : IRequest;
 
+/// <summary>Handles updating a user's profile.</summary>
 public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand>
 {
     private readonly IApplicationDbContext _context;
@@ -16,6 +18,7 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand>
         _context = context;
     }
 
+    /// <summary>Updates the user's username and email if not already taken.</summary>
     public async Task Handle(UpdateUserCommand request, CancellationToken cancellationToken)
     {
         var user = await _context.Users.FindAsync([request.UserId], cancellationToken);

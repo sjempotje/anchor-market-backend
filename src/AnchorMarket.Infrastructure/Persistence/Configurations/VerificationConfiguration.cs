@@ -4,8 +4,11 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace AnchorMarket.Infrastructure.Persistence.Configurations;
 
+/// <summary>EF Core configuration for the <see cref="Verification"/> entity.</summary>
 public class VerificationConfiguration : IEntityTypeConfiguration<Verification>
 {
+    /// <summary>Configures the <see cref="Verification"/> entity mappings.</summary>
+    /// <param name="builder">The entity type builder.</param>
     public void Configure(EntityTypeBuilder<Verification> builder)
     {
         builder.HasKey(v => v.Id);

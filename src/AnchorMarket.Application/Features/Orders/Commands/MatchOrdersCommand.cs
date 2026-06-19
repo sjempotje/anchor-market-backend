@@ -6,17 +6,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AnchorMarket.Application.Features.Orders.Commands;
 
-/// <summary>
-/// Internal command to execute the order matching engine.
-/// This is typically triggered by a background service or message queue.
-/// </summary>
+/// <summary>Command to execute the order matching engine for a market.</summary>
 public record MatchOrdersCommand(Guid MarketId, Guid? OutcomeId = null) : IRequest<MatchingResult>;
 
+/// <summary>Result of the order matching engine execution.</summary>
 public record MatchingResult(
     int TradesExecuted,
     decimal TotalVolume,
     IReadOnlyList<TradeExecution> ExecutedTrades);
 
+/// <summary>Handles the order matching engine.</summary>
 public class MatchOrdersCommandHandler : IRequestHandler<MatchOrdersCommand, MatchingResult>
 {
     private readonly IApplicationDbContext _dbContext;
@@ -30,6 +29,7 @@ public class MatchOrdersCommandHandler : IRequestHandler<MatchOrdersCommand, Mat
         _walletService = walletService;
     }
 
+    /// <summary>Matches buy and sell orders and returns the execution result.</summary>
     public async Task<MatchingResult> Handle(MatchOrdersCommand request, CancellationToken cancellationToken)
     {
         var executedTrades = new List<TradeExecution>();

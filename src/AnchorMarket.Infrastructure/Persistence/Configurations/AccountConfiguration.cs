@@ -4,8 +4,11 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace AnchorMarket.Infrastructure.Persistence.Configurations;
 
+/// <summary>EF Core configuration for the <see cref="Account"/> entity.</summary>
 public class AccountConfiguration : IEntityTypeConfiguration<Account>
 {
+    /// <summary>Configures the <see cref="Account"/> entity mappings.</summary>
+    /// <param name="builder">The entity type builder.</param>
     public void Configure(EntityTypeBuilder<Account> builder)
     {
         builder.HasKey(a => a.Id);

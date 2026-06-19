@@ -5,8 +5,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AnchorMarket.Application.Features.Orders.Commands;
 
+/// <summary>Command to cancel a limit order.</summary>
 public record CancelLimitOrderCommand(Guid OrderId, Guid UserId) : IRequest;
 
+/// <summary>Handles cancelling a limit order.</summary>
 public class CancelLimitOrderCommandHandler : IRequestHandler<CancelLimitOrderCommand>
 {
     private readonly IApplicationDbContext _dbContext;
@@ -20,6 +22,7 @@ public class CancelLimitOrderCommandHandler : IRequestHandler<CancelLimitOrderCo
         _walletService = walletService;
     }
 
+    /// <summary>Cancels the order and refunds unfilled buy portion.</summary>
     public async Task Handle(CancelLimitOrderCommand request, CancellationToken cancellationToken)
     {
         var order = await _dbContext.LimitOrders

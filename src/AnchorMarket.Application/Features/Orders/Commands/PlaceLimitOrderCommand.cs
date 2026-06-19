@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AnchorMarket.Application.Features.Orders.Commands;
 
+/// <summary>Command to place a limit order on a market outcome.</summary>
 public record PlaceLimitOrderCommand(
     Guid UserId,
     Guid MarketId,
@@ -16,10 +17,12 @@ public record PlaceLimitOrderCommand(
     decimal Quantity,
     DateTimeOffset? ExpiresAt) : IRequest<Guid>;
 
+/// <summary>Handles placing a limit order.</summary>
 public class PlaceLimitOrderCommandHandler(
     IApplicationDbContext dbContext,
     IWalletService walletService) : IRequestHandler<PlaceLimitOrderCommand, Guid>
 {
+    /// <summary>Validates the order, debits balance, and returns the order ID.</summary>
     public async Task<Guid> Handle(PlaceLimitOrderCommand request, CancellationToken cancellationToken)
     {
         var market = await dbContext.Markets
@@ -72,8 +75,11 @@ public class PlaceLimitOrderCommandHandler(
     }
 }
 
+/// <summary>Service for managing wallet debits and credits.</summary>
 public interface IWalletService
 {
+    /// <summary>Debits (locks) funds from a user's wallet.</summary>
     Task DebitBalance(Guid userId, decimal amount);
+    /// <summary>Credits (returns) funds to a user's wallet.</summary>
     Task CreditBalance(Guid userId, decimal amount);
 }

@@ -6,11 +6,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AnchorMarket.Application.Features.Orders.Queries;
 
+/// <summary>Query to retrieve limit orders for a market, optionally filtered by outcome and user.</summary>
 public record GetLimitOrdersByMarketQuery(
     Guid MarketId,
     Guid? OutcomeId = null,
     Guid? UserId = null) : IRequest<IReadOnlyList<LimitOrderDto>>;
 
+/// <summary>Handles retrieving limit orders for a market.</summary>
 public class GetLimitOrdersByMarketQueryHandler : IRequestHandler<GetLimitOrdersByMarketQuery, IReadOnlyList<LimitOrderDto>>
 {
     private readonly IApplicationDbContext _dbContext;
@@ -21,6 +23,7 @@ public class GetLimitOrdersByMarketQueryHandler : IRequestHandler<GetLimitOrders
         _dbContext = dbContext;
     }
 
+    /// <summary>Returns the matching limit orders, ordered by newest first.</summary>
     public async Task<IReadOnlyList<LimitOrderDto>> Handle(
         GetLimitOrdersByMarketQuery request,
         CancellationToken cancellationToken)
@@ -47,11 +50,10 @@ public class GetLimitOrdersByMarketQueryHandler : IRequestHandler<GetLimitOrders
     }
 }
 
-/// <summary>
-/// Retrieves detailed limit order information including trade executions.
-/// </summary>
+/// <summary>Query to retrieve detailed limit order information including trade executions.</summary>
 public record GetLimitOrderDetailQuery(Guid OrderId, Guid UserId) : IRequest<LimitOrderDetailDto>;
 
+/// <summary>Handles retrieving detailed limit order information.</summary>
 public class GetLimitOrderDetailQueryHandler : IRequestHandler<GetLimitOrderDetailQuery, LimitOrderDetailDto>
 {
     private readonly IApplicationDbContext _dbContext;
@@ -62,6 +64,7 @@ public class GetLimitOrderDetailQueryHandler : IRequestHandler<GetLimitOrderDeta
         _dbContext = dbContext;
     }
 
+    /// <summary>Returns the detailed order if owned by the caller.</summary>
     public async Task<LimitOrderDetailDto> Handle(
         GetLimitOrderDetailQuery request,
         CancellationToken cancellationToken)

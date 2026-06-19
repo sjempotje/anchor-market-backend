@@ -4,8 +4,11 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace AnchorMarket.Infrastructure.Persistence.Configurations;
 
+/// <summary>EF Core configuration for the <see cref="Wallet"/> entity.</summary>
 public class WalletConfiguration : IEntityTypeConfiguration<Wallet>
 {
+    /// <summary>Configures the <see cref="Wallet"/> entity mappings.</summary>
+    /// <param name="builder">The entity type builder.</param>
     public void Configure(EntityTypeBuilder<Wallet> builder)
     {
         builder.HasKey(w => w.Id);

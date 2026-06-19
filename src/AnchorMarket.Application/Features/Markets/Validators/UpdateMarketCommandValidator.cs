@@ -3,8 +3,10 @@ using FluentValidation;
 
 namespace AnchorMarket.Application.Features.Markets.Validators;
 
+/// <summary>Validates <see cref="UpdateMarketCommand"/>.</summary>
 public class UpdateMarketCommandValidator : AbstractValidator<UpdateMarketCommand>
 {
+    /// <summary>Defines validation rules for updating a market.</summary>
     public UpdateMarketCommandValidator()
     {
         RuleFor(x => x.MarketId).NotEmpty();

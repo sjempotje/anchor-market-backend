@@ -5,8 +5,10 @@ using MediatR;
 
 namespace AnchorMarket.Application.Features.Markets.Commands;
 
+/// <summary>Command to delete a market.</summary>
 public record DeleteMarketCommand(Guid MarketId) : IRequest;
 
+/// <summary>Handles the deletion of a market.</summary>
 public class DeleteMarketCommandHandler : IRequestHandler<DeleteMarketCommand>
 {
     private readonly IApplicationDbContext _context;
@@ -16,6 +18,7 @@ public class DeleteMarketCommandHandler : IRequestHandler<DeleteMarketCommand>
         _context = context;
     }
 
+    /// <summary>Deletes the market if it exists.</summary>
     public async Task Handle(DeleteMarketCommand request, CancellationToken cancellationToken)
     {
         var market = await _context.Markets.FindAsync([request.MarketId], cancellationToken);

@@ -23,6 +23,14 @@ public class LimitOrder : BaseEntity
 
     public ICollection<TradeExecution> TradeExecutions { get; private set; } = new List<TradeExecution>();
 
+    /// <summary>Creates a buy limit order for the specified outcome.</summary>
+    /// <param name="marketId">The target market.</param>
+    /// <param name="outcomeId">The target outcome.</param>
+    /// <param name="userId">The placing user.</param>
+    /// <param name="price">The maximum price per share.</param>
+    /// <param name="quantity">The number of shares to buy.</param>
+    /// <param name="expiresAt">Optional expiry time for the order.</param>
+    /// <returns>A new buy <see cref="LimitOrder"/>.</returns>
     public static LimitOrder CreateBuy(
         Guid marketId,
         Guid outcomeId,
@@ -49,6 +57,14 @@ public class LimitOrder : BaseEntity
         return order;
     }
 
+    /// <summary>Creates a sell limit order for the specified outcome.</summary>
+    /// <param name="marketId">The target market.</param>
+    /// <param name="outcomeId">The target outcome.</param>
+    /// <param name="userId">The placing user.</param>
+    /// <param name="price">The minimum price per share to accept.</param>
+    /// <param name="quantity">The number of shares to sell.</param>
+    /// <param name="expiresAt">Optional expiry time for the order.</param>
+    /// <returns>A new sell <see cref="LimitOrder"/>.</returns>
     public static LimitOrder CreateSell(
         Guid marketId,
         Guid outcomeId,
@@ -75,6 +91,10 @@ public class LimitOrder : BaseEntity
         return order;
     }
 
+    /// <summary>Attempts to fill a portion of this order; returns false if already filled or the fill amount is invalid.</summary>
+    /// <param name="sharesToFill">Number of shares to fill.</param>
+    /// <param name="fillPrice">Price per share at which the fill occurs.</param>
+    /// <returns><c>true</c> if the fill was successful; otherwise <c>false</c>.</returns>
     public bool TryFill(decimal sharesToFill, decimal fillPrice)
     {
         if (Status != OrderStatus.Pending && Status != OrderStatus.PartiallyFilled)
@@ -99,6 +119,7 @@ public class LimitOrder : BaseEntity
         return true;
     }
 
+    /// <summary>Cancels the order; throws if the order is already fully filled.</summary>
     public void Cancel()
     {
         if (Status == OrderStatus.Filled)
@@ -107,11 +128,13 @@ public class LimitOrder : BaseEntity
         Status = OrderStatus.Canceled;
     }
 
+    /// <summary>Returns true if the order has an expiry time that has passed.</summary>
     public bool IsExpired()
     {
         return ExpiresAt.HasValue && DateTimeOffset.UtcNow > ExpiresAt.Value;
     }
 
+    /// <summary>Marks the order as expired; no-op if the order is already fully filled.</summary>
     public void MarkExpired()
     {
         if (Status == OrderStatus.Filled)

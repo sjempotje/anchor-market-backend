@@ -3,8 +3,10 @@ using FluentValidation;
 
 namespace AnchorMarket.Application.Features.Markets.Validators;
 
+/// <summary>Validates <see cref="CreateMarketCommand"/>.</summary>
 public class CreateMarketCommandValidator : AbstractValidator<CreateMarketCommand>
 {
+    /// <summary>Defines validation rules for creating a market.</summary>
     public CreateMarketCommandValidator()
     {
         RuleFor(x => x.Title).NotEmpty().MaximumLength(300);

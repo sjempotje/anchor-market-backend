@@ -5,12 +5,10 @@ using MediatR;
 
 namespace AnchorMarket.Application.Features.GroupMarkets.Commands;
 
-/// <summary>
-/// Cancels an open group market. Only the creator or a group admin may cancel.
-/// Business rule enforced in the handler.
-/// </summary>
+/// <summary>Command to cancel an open group market.</summary>
 public record CancelGroupMarketCommand(Guid MarketId, Guid RequestingUserId) : IRequest;
 
+/// <summary>Handles cancelling a group market.</summary>
 public class CancelGroupMarketCommandHandler : IRequestHandler<CancelGroupMarketCommand>
 {
     private readonly IApplicationDbContext _context;
@@ -20,6 +18,7 @@ public class CancelGroupMarketCommandHandler : IRequestHandler<CancelGroupMarket
         _context = context;
     }
 
+    /// <summary>Cancels the market if the caller is the creator and the market is open.</summary>
     public async Task Handle(CancelGroupMarketCommand request, CancellationToken cancellationToken)
     {
         var market = await _context.Markets.FindAsync([request.MarketId], cancellationToken);

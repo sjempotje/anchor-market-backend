@@ -3,8 +3,10 @@ using FluentValidation;
 
 namespace AnchorMarket.Application.Features.Positions.Validators;
 
+/// <summary>Validates <see cref="PlacePositionCommand"/>.</summary>
 public class PlacePositionCommandValidator : AbstractValidator<PlacePositionCommand>
 {
+    /// <summary>Defines validation rules for placing a position.</summary>
     public PlacePositionCommandValidator()
     {
         RuleFor(x => x.UserId).NotEmpty();

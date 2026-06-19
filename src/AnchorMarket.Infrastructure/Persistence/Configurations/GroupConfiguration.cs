@@ -4,8 +4,11 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace AnchorMarket.Infrastructure.Persistence.Configurations;
 
+/// <summary>EF Core configuration for the <see cref="Group"/> entity.</summary>
 public class GroupConfiguration : IEntityTypeConfiguration<Group>
 {
+    /// <summary>Configures the <see cref="Group"/> entity mappings.</summary>
+    /// <param name="builder">The entity type builder.</param>
     public void Configure(EntityTypeBuilder<Group> builder)
     {
         builder.HasKey(g => g.Id);

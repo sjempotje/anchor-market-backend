@@ -1,29 +1,25 @@
 using AnchorMarket.Application.Common.Exceptions;
 using AnchorMarket.Application.Common.Interfaces;
-using Microsoft.EntityFrameworkCore;
 using MediatR;
 
 namespace AnchorMarket.Application.Features.Groups.Commands;
 
-public record DeleteGroupCommand(Guid GroupId) : IRequest;
+/// <summary>Command to delete a group.</summary>
+public record DeleteGroupCommand(Guid GroupId, Guid CallerId) : IRequest;
 
-public class DeleteGroupCommandHandler : IRequestHandler<DeleteGroupCommand>
+/// <summary>Handles the deletion of a group.</summary>
+public class DeleteGroupCommandHandler(IApplicationDbContext context) : IRequestHandler<DeleteGroupCommand>
 {
-    private readonly IApplicationDbContext _context;
-
-    public DeleteGroupCommandHandler(IApplicationDbContext context)
-    {
-        _context = context;
-    }
-
+    /// <summary>Deletes the group if the caller is the owner.</summary>
     public async Task Handle(DeleteGroupCommand request, CancellationToken cancellationToken)
     {
-        var group = await _context.Groups.FindAsync([request.GroupId], cancellationToken);
+        var group = await context.Groups.FindAsync([request.GroupId], cancellationToken)
+            ?? throw new NotFoundException($"Group with ID {request.GroupId} not found.");
 
-        if (group is null)
-            throw new NotFoundException($"Group with ID {request.GroupId} not found.");
+        if (group.OwnerId != request.CallerId)
+            throw new ForbiddenException("Only the group owner can delete this group.");
 
-        _context.Groups.Remove(group);
-        await _context.SaveChangesAsync(cancellationToken);
+        context.Groups.Remove(group);
+        await context.SaveChangesAsync(cancellationToken);
     }
 }

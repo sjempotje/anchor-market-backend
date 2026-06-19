@@ -6,11 +6,16 @@ using System.Security.Claims;
 
 namespace AnchorMarket.Api.Controllers;
 
+/// <summary>Manages user wallets and transactions.</summary>
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
 public class WalletsController(ISender sender) : ControllerBase
 {
+    /// <summary>Retrieves a wallet by user ID.</summary>
+    /// <param name="userId">The user ID.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The wallet if found; otherwise 404.</returns>
     [HttpGet("user/{userId:guid}")]
     public async Task<IActionResult> GetByUserId(Guid userId, CancellationToken cancellationToken)
     {
@@ -19,6 +24,10 @@ public class WalletsController(ISender sender) : ControllerBase
         return wallet is null ? NotFound() : Ok(wallet);
     }
 
+    /// <summary>Retrieves wallet transactions for a user.</summary>
+    /// <param name="userId">The user ID.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A list of transactions.</returns>
     [HttpGet("user/{userId:guid}/transactions")]
     public async Task<IActionResult> GetTransactions(Guid userId, CancellationToken cancellationToken)
     {

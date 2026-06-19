@@ -4,9 +4,15 @@ using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.OpenApi;
 
+/// <summary>Adds Bearer security scheme to OpenAPI for endpoints requiring authorization.</summary>
 internal sealed class BearerSecuritySchemeTransformer(
     IAuthenticationSchemeProvider authenticationSchemeProvider) : IOpenApiDocumentTransformer
 {
+    /// <summary>Transforms the OpenAPI document to include bearer authentication.</summary>
+    /// <param name="document">The OpenAPI document to transform.</param>
+    /// <param name="context">The transformer context providing API description groups.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
     public async Task TransformAsync(
         OpenApiDocument document,
         OpenApiDocumentTransformerContext context,

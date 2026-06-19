@@ -1,5 +1,6 @@
 namespace AnchorMarket.Application.Features.Sessions.DTOs;
 
+/// <summary>Data transfer object for a user session.</summary>
 public record SessionDto(
     Guid Id,
     Guid UserId,

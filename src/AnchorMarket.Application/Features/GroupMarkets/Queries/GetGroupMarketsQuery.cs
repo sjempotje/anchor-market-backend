@@ -8,15 +8,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AnchorMarket.Application.Features.GroupMarkets.Queries;
 
-/// <summary>
-/// Returns markets scoped to the given group.
-/// Visibility is enforced here!!!!! RequestingUserId must be a group member.
-/// </summary>
+/// <summary>Query to retrieve markets scoped to a group.</summary>
 public record GetGroupMarketsQuery(Guid GroupId, Guid RequestingUserId) : IRequest<List<MarketDto>>;
 
+/// <summary>Handles retrieving group markets.</summary>
 public class GetGroupMarketsQueryHandler(IApplicationDbContext context, IMapper mapper)
     : IRequestHandler<GetGroupMarketsQuery, List<MarketDto>>
 {
+    /// <summary>Returns markets for the group if the user is a member.</summary>
     public async Task<List<MarketDto>> Handle(GetGroupMarketsQuery request, CancellationToken cancellationToken)
     {
         var isMember = await context.GroupMemberships

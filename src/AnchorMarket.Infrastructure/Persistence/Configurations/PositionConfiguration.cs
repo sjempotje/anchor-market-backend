@@ -4,8 +4,11 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace AnchorMarket.Infrastructure.Persistence.Configurations;
 
+/// <summary>EF Core configuration for the <see cref="Position"/> entity.</summary>
 public class PositionConfiguration : IEntityTypeConfiguration<Position>
 {
+    /// <summary>Configures the <see cref="Position"/> entity mappings.</summary>
+    /// <param name="builder">The entity type builder.</param>
     public void Configure(EntityTypeBuilder<Position> builder)
     {
         builder.HasKey(p => p.Id);

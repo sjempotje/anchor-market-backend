@@ -5,8 +5,10 @@ using MediatR;
 
 namespace AnchorMarket.Application.Features.Accounts.Queries;
 
+/// <summary>Query to retrieve an account by its ID.</summary>
 public record GetAccountByIdQuery(Guid Id) : IRequest<AccountDto?>;
 
+/// <summary>Handles retrieving an account by ID.</summary>
 public class GetAccountByIdQueryHandler : IRequestHandler<GetAccountByIdQuery, AccountDto?>
 {
     private readonly IApplicationDbContext _context;
@@ -16,6 +18,7 @@ public class GetAccountByIdQueryHandler : IRequestHandler<GetAccountByIdQuery, A
         _context = context;
     }
 
+    /// <summary>Retrieves the account by ID, or null if not found.</summary>
     public async Task<AccountDto?> Handle(GetAccountByIdQuery request, CancellationToken cancellationToken)
     {
         var account = await _context.Set<Account>().FindAsync([request.Id], cancellationToken);

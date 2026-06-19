@@ -8,10 +8,16 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace AnchorMarket.Infrastructure;
 
+/// <summary>Registers infrastructure-layer services including EF Core, authentication, and authorization.</summary>
 public static class DependencyInjection
 {
+    /// <summary>The custom authentication scheme name used by the application.</summary>
     public const string SchemeName = "BetterAuth";
 
+    /// <summary>Configures and registers infrastructure services for the application.</summary>
+    /// <param name="services">The service collection to add to.</param>
+    /// <param name="configuration">The application configuration.</param>
+    /// <returns>The same service collection for chaining.</returns>
     public static IServiceCollection AddInfrastructure(
         this IServiceCollection services,
         IConfiguration configuration)

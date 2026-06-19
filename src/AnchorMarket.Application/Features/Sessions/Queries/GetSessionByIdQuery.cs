@@ -5,8 +5,10 @@ using MediatR;
 
 namespace AnchorMarket.Application.Features.Sessions.Queries;
 
+/// <summary>Query to retrieve a session by its ID.</summary>
 public record GetSessionByIdQuery(Guid Id) : IRequest<SessionDto?>;
 
+/// <summary>Handles retrieving a session by ID.</summary>
 public class GetSessionByIdQueryHandler : IRequestHandler<GetSessionByIdQuery, SessionDto?>
 {
     private readonly IApplicationDbContext _context;
@@ -16,6 +18,7 @@ public class GetSessionByIdQueryHandler : IRequestHandler<GetSessionByIdQuery, S
         _context = context;
     }
 
+    /// <summary>Retrieves the session by ID, or null if not found.</summary>
     public async Task<SessionDto?> Handle(GetSessionByIdQuery request, CancellationToken cancellationToken)
     {
         var session = await _context.Set<Session>().FindAsync([request.Id], cancellationToken);

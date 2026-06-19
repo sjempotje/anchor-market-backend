@@ -7,15 +7,13 @@ using MediatR;
 
 namespace AnchorMarket.Application.Features.GroupMarkets.Commands;
 
-/// <summary>
-/// Resolves a group market. The ResolverId must be a group member who is NOT the market creator.
-/// This two-person rule is enforced in the handler, not in the controller or database.
-/// </summary>
+/// <summary>Command to resolve a group market with a winning outcome.</summary>
 public record ResolveGroupMarketCommand(
     Guid MarketId,
     Guid WinningOutcomeId,
     Guid ResolverId) : IRequest;
 
+/// <summary>Handles resolving a group market.</summary>
 public class ResolveGroupMarketCommandHandler : IRequestHandler<ResolveGroupMarketCommand>
 {
     private readonly IApplicationDbContext _context;
@@ -25,6 +23,7 @@ public class ResolveGroupMarketCommandHandler : IRequestHandler<ResolveGroupMark
         _context = context;
     }
 
+    /// <summary>Resolves the market, records the resolution, and updates position fair values.</summary>
     public async Task Handle(ResolveGroupMarketCommand request, CancellationToken cancellationToken)
     {
         var market = await _context.Markets

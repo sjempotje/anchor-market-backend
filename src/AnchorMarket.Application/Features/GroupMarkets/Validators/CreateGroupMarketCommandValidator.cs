@@ -3,8 +3,10 @@ using FluentValidation;
 
 namespace AnchorMarket.Application.Features.GroupMarkets.Validators;
 
+/// <summary>Validates <see cref="CreateGroupMarketCommand"/>.</summary>
 public class CreateGroupMarketCommandValidator : AbstractValidator<CreateGroupMarketCommand>
 {
+    /// <summary>Defines validation rules for creating a group market.</summary>
     public CreateGroupMarketCommandValidator()
     {
         RuleFor(x => x.GroupId).NotEmpty();

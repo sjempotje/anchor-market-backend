@@ -7,10 +7,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AnchorMarket.Application.Features.Orders.Queries;
 
+/// <summary>Query to retrieve the order book for a market outcome.</summary>
 public record GetOrderBookQuery(
     Guid MarketId, 
     Guid OutcomeId) : IRequest<OrderBookDto>;
 
+/// <summary>Handles retrieving the order book.</summary>
 public class GetOrderBookQueryHandler : IRequestHandler<GetOrderBookQuery, OrderBookDto>
 {
     private readonly IApplicationDbContext _dbContext;
@@ -20,6 +22,7 @@ public class GetOrderBookQueryHandler : IRequestHandler<GetOrderBookQuery, Order
         _dbContext = dbContext;
     }
 
+    /// <summary>Returns the bid/ask levels for the specified market outcome.</summary>
     public async Task<OrderBookDto> Handle(
         GetOrderBookQuery request, 
         CancellationToken cancellationToken)
@@ -80,9 +83,10 @@ public class GetOrderBookQueryHandler : IRequestHandler<GetOrderBookQuery, Order
     }
 }
 
-/// <summary>Retrieves the current market price using mid-price from the order book.</summary>
+/// <summary>Query to retrieve the current market price for an outcome.</summary>
 public record GetMarketPriceQuery(Guid MarketId, Guid OutcomeId) : IRequest<MarketPriceDto>;
 
+/// <summary>Handles retrieving the current market price.</summary>
 public class GetMarketPriceQueryHandler : IRequestHandler<GetMarketPriceQuery, MarketPriceDto>
 {
     private readonly IApplicationDbContext _dbContext;
@@ -92,6 +96,7 @@ public class GetMarketPriceQueryHandler : IRequestHandler<GetMarketPriceQuery, M
         _dbContext = dbContext;
     }
 
+    /// <summary>Calculates the mid-price from the order book and 24h stats.</summary>
     public async Task<MarketPriceDto> Handle(
         GetMarketPriceQuery request,
         CancellationToken cancellationToken)

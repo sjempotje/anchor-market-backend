@@ -1,4 +1,3 @@
-using AnchorMarket.Application.Common.Exceptions;
 using AnchorMarket.Application.Common.Interfaces;
 using AnchorMarket.Domain.Entities;
 using AnchorMarket.Domain.Enums;
@@ -7,6 +6,7 @@ using MediatR;
 
 namespace AnchorMarket.Application.Features.Markets.Commands;
 
+/// <summary>Command to create a new market.</summary>
 public record CreateMarketCommand(
     string Title,
     string Description,
@@ -14,8 +14,15 @@ public record CreateMarketCommand(
     MarketScope Scope,
     Guid CreatorId,
     Guid? GroupId,
-    IReadOnlyList<string> OutcomeTitles) : IRequest<Guid>;
+    IReadOnlyList<string> OutcomeTitles,
+    MarketType MarketType = MarketType.Binary,
+    Guid? EventId = null,
+    Guid? CategoryId = null,
+    Guid? MatchId = null,
+    string? ImageUrl = null,
+    string? Slug = null) : IRequest<Guid>;
 
+/// <summary>Handles the creation of a market.</summary>
 public class CreateMarketCommandHandler : IRequestHandler<CreateMarketCommand, Guid>
 {
     private readonly IApplicationDbContext _context;
@@ -25,6 +32,7 @@ public class CreateMarketCommandHandler : IRequestHandler<CreateMarketCommand, G
         _context = context;
     }
 
+    /// <summary>Creates the market and returns its ID.</summary>
     public async Task<Guid> Handle(CreateMarketCommand request, CancellationToken cancellationToken)
     {
         if (request.GroupId.HasValue && request.Scope == MarketScope.Group)
@@ -43,7 +51,13 @@ public class CreateMarketCommandHandler : IRequestHandler<CreateMarketCommand, G
             request.Scope,
             request.CreatorId,
             request.GroupId,
-            request.OutcomeTitles);
+            request.OutcomeTitles,
+            request.MarketType,
+            request.EventId,
+            request.CategoryId,
+            request.MatchId,
+            request.ImageUrl,
+            request.Slug);
 
         _context.Markets.Add(market);
         await _context.SaveChangesAsync(cancellationToken);

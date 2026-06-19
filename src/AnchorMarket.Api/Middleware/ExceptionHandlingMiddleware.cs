@@ -4,8 +4,12 @@ using System.Text.Json;
 
 namespace AnchorMarket.Api.Middleware;
 
+/// <summary>Catches unhandled exceptions and returns structured error responses.</summary>
 public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
 {
+    /// <summary>Invokes the middleware, mapping exceptions to HTTP status codes.</summary>
+    /// <param name="context">The HTTP context.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
     public async Task InvokeAsync(HttpContext context)
     {
         try

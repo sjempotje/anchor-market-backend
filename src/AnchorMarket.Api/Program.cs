@@ -63,4 +63,5 @@ if (!app.Environment.IsEnvironment("Testing"))
 app.MapControllers();
 app.Run();
 
+/// <summary>Application entry point and service configuration.</summary>
 public partial class Program { }

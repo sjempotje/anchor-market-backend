@@ -7,8 +7,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AnchorMarket.Application.Features.Positions.Queries;
 
+/// <summary>Query to retrieve positions for a user in a specific market.</summary>
 public record GetPositionsByMarketQuery(Guid MarketId, Guid UserId) : IRequest<List<PositionDto>>;
 
+/// <summary>Handles retrieving positions by market.</summary>
 public class GetPositionsByMarketQueryHandler : IRequestHandler<GetPositionsByMarketQuery, List<PositionDto>>
 {
     private readonly IApplicationDbContext _context;
@@ -20,6 +22,7 @@ public class GetPositionsByMarketQueryHandler : IRequestHandler<GetPositionsByMa
         _mapper = mapper;
     }
 
+    /// <summary>Returns the user's positions for the specified market.</summary>
     public async Task<List<PositionDto>> Handle(GetPositionsByMarketQuery request, CancellationToken cancellationToken)
     {
         var positions = await _context.Positions

@@ -9,17 +9,14 @@ using System.Linq;
 
 namespace AnchorMarket.Application.Features.Positions.Commands;
 
-/// <summary>
-/// Places a position (bet) on a specific market outcome.
-/// This is the legacy "market order" style - buys at current market price.
-/// For limit orders, use PlaceLimitOrderCommand instead.
-/// </summary>
+/// <summary>Command to place a market-order position on a specific outcome.</summary>
 public record PlacePositionCommand(
     Guid UserId,
     Guid MarketId,
     Guid OutcomeId,
     decimal Amount) : IRequest<Guid>;
 
+/// <summary>Handles placing a position.</summary>
 public class PlacePositionCommandHandler : IRequestHandler<PlacePositionCommand, Guid>
 {
     private readonly IApplicationDbContext _dbContext;
@@ -31,6 +28,7 @@ public class PlacePositionCommandHandler : IRequestHandler<PlacePositionCommand,
         _walletService = walletService;
     }
 
+    /// <summary>Calculates the current price, debits the user, and creates the position.</summary>
     public async Task<Guid> Handle(PlacePositionCommand request, CancellationToken cancellationToken)
     {
         var market = await _dbContext.Markets

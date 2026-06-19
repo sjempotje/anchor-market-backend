@@ -4,8 +4,11 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace AnchorMarket.Infrastructure.Persistence.Configurations;
 
+/// <summary>EF Core configuration for the <see cref="TradeExecution"/> entity.</summary>
 public class TradeExecutionConfiguration : IEntityTypeConfiguration<TradeExecution>
 {
+    /// <summary>Configures the <see cref="TradeExecution"/> entity mappings.</summary>
+    /// <param name="builder">The entity type builder.</param>
     public void Configure(EntityTypeBuilder<TradeExecution> builder)
     {
         builder.HasKey(te => te.Id);

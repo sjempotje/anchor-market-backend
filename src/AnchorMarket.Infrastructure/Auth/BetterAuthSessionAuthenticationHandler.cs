@@ -49,7 +49,7 @@ public class BetterAuthSessionAuthenticationHandler(
         if (string.IsNullOrWhiteSpace(token))
             return AuthenticateResult.NoResult();
 
-        // Better Auth stores only the prefix before the '.' — the suffix is an
+        // Better Auth stores only the prefix before the '.', the suffix is an
         // HMAC-SHA256 signature over the prefix, base64-encoded.
         // Cookie values arriving via Bearer header may be URL-encoded.
         var decoded = Uri.UnescapeDataString(token);
@@ -94,6 +94,7 @@ public class BetterAuthSessionAuthenticationHandler(
             new Claim(ClaimTypes.NameIdentifier, session.UserId.ToString()),
             new Claim(ClaimTypes.Name, session.User.Name),
             new Claim(ClaimTypes.Email, session.User.Email),
+            new Claim(ClaimTypes.Role, session.User.Role.ToString()),
         };
 
         var identity = new ClaimsIdentity(claims, Scheme.Name);

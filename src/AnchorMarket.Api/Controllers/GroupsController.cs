@@ -3,56 +3,70 @@ using AnchorMarket.Application.Features.Groups.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace AnchorMarket.Api.Controllers;
 
+/// <summary>Manages user groups for collaborative markets.</summary>
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class GroupsController : ControllerBase
+public class GroupsController(ISender sender) : ControllerBase
 {
-    private readonly ISender _sender;
-
-    public GroupsController(ISender sender)
-    {
-        _sender = sender;
-    }
-
+    /// <summary>Retrieves all groups.</summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A list of groups.</returns>
     [HttpGet]
     [AllowAnonymous]
     public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
-    {
-        var groups = await _sender.Send(new GetGroupsQuery(), cancellationToken);
-        return Ok(groups);
-    }
+        => Ok(await sender.Send(new GetGroupsQuery(), cancellationToken));
 
+    /// <summary>Retrieves a group by its ID.</summary>
+    /// <param name="id">The group ID.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The group if found; otherwise 404.</returns>
     [HttpGet("{id:guid}")]
     [AllowAnonymous]
     public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
     {
-        var group = await _sender.Send(new GetGroupByIdQuery(id), cancellationToken);
+        var group = await sender.Send(new GetGroupByIdQuery(id), cancellationToken);
         return group is null ? NotFound() : Ok(group);
     }
 
+    /// <summary>Creates a new group.</summary>
+    /// <param name="command">The create command.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>201 response with the new group ID.</returns>
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateGroupCommand command, CancellationToken cancellationToken)
     {
-        var id = await _sender.Send(command, cancellationToken);
+        var id = await sender.Send(command, cancellationToken);
         return CreatedAtAction(nameof(GetById), new { id }, null);
     }
 
+    /// <summary>Updates an existing group.</summary>
+    /// <param name="id">The group ID.</param>
+    /// <param name="command">The update command.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>204 No Content.</returns>
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateGroupCommand command, CancellationToken cancellationToken)
     {
+        var callerId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         if (id != command.GroupId) return BadRequest();
-        await _sender.Send(command, cancellationToken);
+        await sender.Send(command with { CallerId = callerId }, cancellationToken);
         return NoContent();
     }
 
+    /// <summary>Deletes a group by ID.</summary>
+    /// <param name="id">The group ID.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>204 No Content.</returns>
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
-        await _sender.Send(new DeleteGroupCommand(id), cancellationToken);
+        var callerId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        await sender.Send(new DeleteGroupCommand(id, callerId), cancellationToken);
         return NoContent();
     }
 }

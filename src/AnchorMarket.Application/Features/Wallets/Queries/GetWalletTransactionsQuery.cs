@@ -8,11 +8,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AnchorMarket.Application.Features.Wallets.Queries;
 
+/// <summary>Query to retrieve a user's wallet transactions.</summary>
 public record GetWalletTransactionsQuery(Guid UserId, Guid CallerId) : IRequest<List<TransactionDto>>;
 
+/// <summary>Handles retrieving wallet transactions.</summary>
 public class GetWalletTransactionsQueryHandler(IApplicationDbContext context, IMapper mapper)
     : IRequestHandler<GetWalletTransactionsQuery, List<TransactionDto>>
 {
+    /// <summary>Returns transactions for the wallet if owned by the caller.</summary>
     public async Task<List<TransactionDto>> Handle(GetWalletTransactionsQuery request, CancellationToken cancellationToken)
     {
         if (request.UserId != request.CallerId) throw new ForbiddenException("You do not own this wallet.");

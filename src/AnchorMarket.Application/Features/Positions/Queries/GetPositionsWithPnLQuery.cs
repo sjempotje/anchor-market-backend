@@ -7,11 +7,10 @@ using System.Linq;
 
 namespace AnchorMarket.Application.Features.Positions.Queries;
 
-/// <summary>
-/// Retrieves all positions for a user with calculated PnL information.
-/// </summary>
+/// <summary>Query to retrieve all positions for a user with calculated PnL.</summary>
 public record GetPositionsWithPnLQuery(Guid UserId) : IRequest<IReadOnlyList<PositionWithPnLDto>>;
 
+/// <summary>Handles retrieving positions with PnL calculations.</summary>
 public class GetPositionsWithPnLQueryHandler : IRequestHandler<GetPositionsWithPnLQuery, IReadOnlyList<PositionWithPnLDto>>
 {
     private readonly IApplicationDbContext _dbContext;
@@ -25,6 +24,7 @@ public class GetPositionsWithPnLQueryHandler : IRequestHandler<GetPositionsWithP
         _mapper = mapper;
     }
 
+    /// <summary>Returns positions with calculated unrealized PnL and ROI.</summary>
     public async Task<IReadOnlyList<PositionWithPnLDto>> Handle(
         GetPositionsWithPnLQuery request, 
         CancellationToken cancellationToken)

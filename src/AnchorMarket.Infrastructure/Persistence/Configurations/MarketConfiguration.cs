@@ -5,8 +5,11 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace AnchorMarket.Infrastructure.Persistence.Configurations;
 
+/// <summary>EF Core configuration for the <see cref="Market"/> entity.</summary>
 public class MarketConfiguration : IEntityTypeConfiguration<Market>
 {
+    /// <summary>Configures the <see cref="Market"/> entity mappings.</summary>
+    /// <param name="builder">The entity type builder.</param>
     public void Configure(EntityTypeBuilder<Market> builder)
     {
         builder.HasKey(m => m.Id);

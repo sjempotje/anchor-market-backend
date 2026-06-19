@@ -3,8 +3,10 @@ using FluentValidation;
 
 namespace AnchorMarket.Application.Features.Groups.Validators;
 
+/// <summary>Validates <see cref="UpdateGroupCommand"/>.</summary>
 public class UpdateGroupCommandValidator : AbstractValidator<UpdateGroupCommand>
 {
+    /// <summary>Defines validation rules for updating a group.</summary>
     public UpdateGroupCommandValidator()
     {
         RuleFor(x => x.GroupId).NotEmpty();

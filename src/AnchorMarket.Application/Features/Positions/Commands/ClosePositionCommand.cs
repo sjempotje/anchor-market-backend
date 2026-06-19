@@ -5,9 +5,10 @@ using MediatR;
 
 namespace AnchorMarket.Application.Features.Positions.Commands;
 
-/// <summary>Closes (sells) a user's open position, returning funds proportionally to their wallet.</summary>
+/// <summary>Command to close (sell) a user's open position.</summary>
 public record ClosePositionCommand(Guid PositionId, Guid UserId) : IRequest;
 
+/// <summary>Handles closing a position.</summary>
 public class ClosePositionCommandHandler : IRequestHandler<ClosePositionCommand>
 {
     private readonly IApplicationDbContext _context;
@@ -17,6 +18,7 @@ public class ClosePositionCommandHandler : IRequestHandler<ClosePositionCommand>
         _context = context;
     }
 
+    /// <summary>Closes the position and credits the return amount to the wallet.</summary>
     public async Task Handle(ClosePositionCommand request, CancellationToken cancellationToken)
     {
         var position = await _context.Positions

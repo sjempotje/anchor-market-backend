@@ -5,29 +5,31 @@ using MediatR;
 
 namespace AnchorMarket.Application.Features.Markets.Commands;
 
+/// <summary>Command to update an existing market.</summary>
 public record UpdateMarketCommand(
     Guid MarketId,
     string Title,
     string Description,
-    DateTimeOffset ResolutionDeadline) : IRequest;
+    DateTimeOffset ResolutionDeadline,
+    string? ImageUrl = null,
+    string? BannerUrl = null,
+    string? Thumbnail = null,
+    string? Slug = null,
+    string? ResolutionSource = null,
+    string? ResolutionNotes = null) : IRequest;
 
-public class UpdateMarketCommandHandler : IRequestHandler<UpdateMarketCommand>
+/// <summary>Handles updating a market.</summary>
+public class UpdateMarketCommandHandler(IApplicationDbContext context) : IRequestHandler<UpdateMarketCommand>
 {
-    private readonly IApplicationDbContext _context;
-
-    public UpdateMarketCommandHandler(IApplicationDbContext context)
-    {
-        _context = context;
-    }
-
+    /// <summary>Updates the market's details if it exists.</summary>
     public async Task Handle(UpdateMarketCommand request, CancellationToken cancellationToken)
     {
-        var market = await _context.Markets.FindAsync([request.MarketId], cancellationToken);
-
-        if (market is null)
-            throw new NotFoundException($"Market with ID {request.MarketId} not found.");
+        var market = await context.Markets.FindAsync([request.MarketId], cancellationToken)
+            ?? throw new NotFoundException($"Market with ID {request.MarketId} not found.");
 
         market.Update(request.Title, request.Description, request.ResolutionDeadline);
-        await _context.SaveChangesAsync(cancellationToken);
+        market.SetImages(request.ImageUrl, request.BannerUrl, request.Thumbnail);
+        market.SetResolutionSource(request.ResolutionSource, request.ResolutionNotes);
+        await context.SaveChangesAsync(cancellationToken);
     }
 }

@@ -2,6 +2,7 @@ using AnchorMarket.Domain.Enums;
 
 namespace AnchorMarket.Application.Features.Orders.DTOs;
 
+/// <summary>Data transfer object for a limit order.</summary>
 public record LimitOrderDto(
     Guid Id,
     Guid MarketId,
@@ -18,6 +19,7 @@ public record LimitOrderDto(
     DateTimeOffset CreatedAt,
     DateTimeOffset? UpdatedAt);
 
+/// <summary>Data transfer object for a limit order with trade execution details.</summary>
 public record LimitOrderDetailDto(
     Guid Id,
     Guid MarketId,
@@ -39,6 +41,7 @@ public record LimitOrderDetailDto(
     DateTimeOffset? UpdatedAt,
     IReadOnlyList<TradeExecutionDto> TradeExecutions);
 
+/// <summary>Data transfer object for a trade execution.</summary>
 public record TradeExecutionDto(
     Guid Id,
     Guid LimitOrderId,

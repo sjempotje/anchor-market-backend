@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AnchorMarket.Application.Features.Orders.Commands;
 
+/// <summary>Default implementation of <see cref="IWalletService"/> that updates wallet balances and records transactions.</summary>
 public class WalletService : IWalletService
 {
     private readonly IApplicationDbContext _dbContext;
@@ -13,6 +14,7 @@ public class WalletService : IWalletService
         _dbContext = dbContext;
     }
 
+    /// <summary>Debits funds from the user's wallet for a limit order.</summary>
     public async Task DebitBalance(Guid userId, decimal amount)
     {
         var wallet = await _dbContext.Wallets
@@ -32,6 +34,7 @@ public class WalletService : IWalletService
         _dbContext.Transactions.Add(transaction);
     }
 
+    /// <summary>Credits funds back to the user's wallet (e.g., on cancellation).</summary>
     public async Task CreditBalance(Guid userId, decimal amount)
     {
         var wallet = await _dbContext.Wallets

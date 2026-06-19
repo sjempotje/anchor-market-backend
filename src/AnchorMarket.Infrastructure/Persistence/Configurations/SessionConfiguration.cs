@@ -4,8 +4,11 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace AnchorMarket.Infrastructure.Persistence.Configurations;
 
+/// <summary>EF Core configuration for the <see cref="Session"/> entity.</summary>
 public class SessionConfiguration : IEntityTypeConfiguration<Session>
 {
+    /// <summary>Configures the <see cref="Session"/> entity mappings.</summary>
+    /// <param name="builder">The entity type builder.</param>
     public void Configure(EntityTypeBuilder<Session> builder)
     {
         builder.HasKey(s => s.Id);

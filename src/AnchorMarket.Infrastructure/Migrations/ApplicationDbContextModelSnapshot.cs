@@ -85,6 +85,186 @@ namespace AnchorMarket.Infrastructure.Migrations
                     b.ToTable("Accounts");
                 });
 
+            modelBuilder.Entity("AnchorMarket.Domain.Entities.Category", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Icon")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("ParentCategoryId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ParentCategoryId");
+
+                    b.ToTable("Categories");
+                });
+
+            modelBuilder.Entity("AnchorMarket.Domain.Entities.Comment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("MarketId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("ParentCommentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Upvotes")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MarketId");
+
+                    b.HasIndex("ParentCommentId");
+
+                    b.ToTable("Comments");
+                });
+
+            modelBuilder.Entity("AnchorMarket.Domain.Entities.Event", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("BannerUrl")
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("CategoryId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("EndTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("HostCountry")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("text");
+
+                    b.Property<decimal?>("PrizePool")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("Slug")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("StartTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Venue")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategoryId");
+
+                    b.ToTable("Events");
+                });
+
+            modelBuilder.Entity("AnchorMarket.Domain.Entities.FavoriteMarket", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("MarketId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MarketId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("FavoriteMarkets");
+                });
+
+            modelBuilder.Entity("AnchorMarket.Domain.Entities.FavoriteTeam", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("TeamId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TeamId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("FavoriteTeams");
+                });
+
             modelBuilder.Entity("AnchorMarket.Domain.Entities.Group", b =>
                 {
                     b.Property<Guid>("Id")
@@ -143,6 +323,42 @@ namespace AnchorMarket.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("GroupMemberships");
+                });
+
+            modelBuilder.Entity("AnchorMarket.Domain.Entities.League", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Country")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LogoUrl")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("SportId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SportId");
+
+                    b.ToTable("Leagues");
                 });
 
             modelBuilder.Entity("AnchorMarket.Domain.Entities.LimitOrder", b =>
@@ -212,6 +428,12 @@ namespace AnchorMarket.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("BannerUrl")
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("CategoryId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -223,18 +445,54 @@ namespace AnchorMarket.Infrastructure.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)");
 
+                    b.Property<Guid?>("EventId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("Featured")
+                        .HasColumnType("boolean");
+
                     b.Property<Guid?>("GroupId")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Keywords")
+                        .HasColumnType("text");
+
+                    b.Property<decimal>("Liquidity")
+                        .HasColumnType("numeric");
+
+                    b.Property<int>("MarketType")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("MatchId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("OpenInterest")
+                        .HasColumnType("numeric");
+
                     b.Property<DateTimeOffset>("ResolutionDeadline")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ResolutionNotes")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ResolutionSource")
+                        .HasColumnType("text");
 
                     b.Property<string>("Scope")
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("Slug")
+                        .HasColumnType("text");
+
                     b.Property<string>("Status")
                         .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Thumbnail")
                         .HasColumnType("text");
 
                     b.Property<string>("Title")
@@ -242,12 +500,33 @@ namespace AnchorMarket.Infrastructure.Migrations
                         .HasMaxLength(300)
                         .HasColumnType("character varying(300)");
 
+                    b.Property<int>("TradesCount")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("TrendingScore")
+                        .HasColumnType("numeric");
+
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<decimal>("Volume24h")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal>("Volume7d")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal>("VolumeAllTime")
+                        .HasColumnType("numeric");
+
                     b.HasKey("Id");
 
+                    b.HasIndex("CategoryId");
+
+                    b.HasIndex("EventId");
+
                     b.HasIndex("GroupId");
+
+                    b.HasIndex("MatchId");
 
                     b.ToTable("Markets");
                 });
@@ -286,7 +565,7 @@ namespace AnchorMarket.Infrastructure.Migrations
                     b.ToTable("MarketResolutions");
                 });
 
-            modelBuilder.Entity("AnchorMarket.Domain.Entities.Outcome", b =>
+            modelBuilder.Entity("AnchorMarket.Domain.Entities.MarketTemplate", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -295,8 +574,212 @@ namespace AnchorMarket.Infrastructure.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("MarketType")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("OutcomeTitlesJson")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("SportId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SportId");
+
+                    b.ToTable("MarketTemplates");
+                });
+
+            modelBuilder.Entity("AnchorMarket.Domain.Entities.Match", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AwayTeamId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("EventId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("HomeTeamId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("LeagueId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("StartTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AwayTeamId");
+
+                    b.HasIndex("EventId");
+
+                    b.HasIndex("HomeTeamId");
+
+                    b.HasIndex("LeagueId");
+
+                    b.ToTable("Matches");
+                });
+
+            modelBuilder.Entity("AnchorMarket.Domain.Entities.MatchState", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Clock")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CurrentPeriod")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ExtraInfo")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("MatchId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("ScoreAway")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ScoreHome")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MatchId")
+                        .IsUnique();
+
+                    b.ToTable("MatchStates");
+                });
+
+            modelBuilder.Entity("AnchorMarket.Domain.Entities.MatchStream", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("MatchId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("RequiresLogin")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MatchId");
+
+                    b.ToTable("MatchStreams");
+                });
+
+            modelBuilder.Entity("AnchorMarket.Domain.Entities.Notification", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid?>("RelatedEntityId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Notifications");
+                });
+
+            modelBuilder.Entity("AnchorMarket.Domain.Entities.Outcome", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Color")
+                        .HasColumnType("text");
+
+                    b.Property<string>("CountryCode")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("text");
+
                     b.Property<Guid>("MarketId")
                         .HasColumnType("uuid");
+
+                    b.Property<decimal>("OpenInterest")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("ShortName")
+                        .HasColumnType("text");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -305,6 +788,9 @@ namespace AnchorMarket.Infrastructure.Migrations
 
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal>("Volume")
+                        .HasColumnType("numeric");
 
                     b.HasKey("Id");
 
@@ -358,6 +844,40 @@ namespace AnchorMarket.Infrastructure.Migrations
                     b.ToTable("Positions");
                 });
 
+            modelBuilder.Entity("AnchorMarket.Domain.Entities.PriceHistory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal>("Liquidity")
+                        .HasColumnType("numeric");
+
+                    b.Property<Guid>("OutcomeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("numeric");
+
+                    b.Property<DateTimeOffset>("Timestamp")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal>("Volume")
+                        .HasColumnType("numeric");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OutcomeId");
+
+                    b.ToTable("PriceHistory");
+                });
+
             modelBuilder.Entity("AnchorMarket.Domain.Entities.Session", b =>
                 {
                     b.Property<Guid>("Id")
@@ -399,6 +919,80 @@ namespace AnchorMarket.Infrastructure.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Sessions");
+                });
+
+            modelBuilder.Entity("AnchorMarket.Domain.Entities.Sport", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Icon")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Sports");
+                });
+
+            modelBuilder.Entity("AnchorMarket.Domain.Entities.Team", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Country")
+                        .HasColumnType("text");
+
+                    b.Property<string>("CountryCode")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LogoUrl")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ShortName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("SportId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SportId");
+
+                    b.ToTable("Teams");
                 });
 
             modelBuilder.Entity("AnchorMarket.Domain.Entities.TradeExecution", b =>
@@ -498,6 +1092,9 @@ namespace AnchorMarket.Infrastructure.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<string>("Bio")
+                        .HasColumnType("text");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -511,14 +1108,23 @@ namespace AnchorMarket.Infrastructure.Migrations
                         .HasColumnType("boolean")
                         .HasDefaultValue(false);
 
+                    b.Property<int>("FollowersCount")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Image")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
+
+                    b.Property<bool>("IsVerifiedCreator")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)");
+
+                    b.Property<int>("Role")
+                        .HasColumnType("integer");
 
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -615,6 +1221,75 @@ namespace AnchorMarket.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("AnchorMarket.Domain.Entities.Category", b =>
+                {
+                    b.HasOne("AnchorMarket.Domain.Entities.Category", "ParentCategory")
+                        .WithMany("SubCategories")
+                        .HasForeignKey("ParentCategoryId");
+
+                    b.Navigation("ParentCategory");
+                });
+
+            modelBuilder.Entity("AnchorMarket.Domain.Entities.Comment", b =>
+                {
+                    b.HasOne("AnchorMarket.Domain.Entities.Market", "Market")
+                        .WithMany("Comments")
+                        .HasForeignKey("MarketId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AnchorMarket.Domain.Entities.Comment", "ParentComment")
+                        .WithMany("Replies")
+                        .HasForeignKey("ParentCommentId");
+
+                    b.Navigation("Market");
+
+                    b.Navigation("ParentComment");
+                });
+
+            modelBuilder.Entity("AnchorMarket.Domain.Entities.Event", b =>
+                {
+                    b.HasOne("AnchorMarket.Domain.Entities.Category", "Category")
+                        .WithMany("Events")
+                        .HasForeignKey("CategoryId");
+
+                    b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("AnchorMarket.Domain.Entities.FavoriteMarket", b =>
+                {
+                    b.HasOne("AnchorMarket.Domain.Entities.Market", "Market")
+                        .WithMany("FavoritedBy")
+                        .HasForeignKey("MarketId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AnchorMarket.Domain.Entities.User", null)
+                        .WithMany("FavoriteMarkets")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Market");
+                });
+
+            modelBuilder.Entity("AnchorMarket.Domain.Entities.FavoriteTeam", b =>
+                {
+                    b.HasOne("AnchorMarket.Domain.Entities.Team", "Team")
+                        .WithMany("FavoritedBy")
+                        .HasForeignKey("TeamId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AnchorMarket.Domain.Entities.User", null)
+                        .WithMany("FavoriteTeams")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Team");
+                });
+
             modelBuilder.Entity("AnchorMarket.Domain.Entities.GroupMembership", b =>
                 {
                     b.HasOne("AnchorMarket.Domain.Entities.Group", "Group")
@@ -624,6 +1299,17 @@ namespace AnchorMarket.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Group");
+                });
+
+            modelBuilder.Entity("AnchorMarket.Domain.Entities.League", b =>
+                {
+                    b.HasOne("AnchorMarket.Domain.Entities.Sport", "Sport")
+                        .WithMany("Leagues")
+                        .HasForeignKey("SportId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Sport");
                 });
 
             modelBuilder.Entity("AnchorMarket.Domain.Entities.LimitOrder", b =>
@@ -647,12 +1333,30 @@ namespace AnchorMarket.Infrastructure.Migrations
 
             modelBuilder.Entity("AnchorMarket.Domain.Entities.Market", b =>
                 {
+                    b.HasOne("AnchorMarket.Domain.Entities.Category", "Category")
+                        .WithMany("Markets")
+                        .HasForeignKey("CategoryId");
+
+                    b.HasOne("AnchorMarket.Domain.Entities.Event", "Event")
+                        .WithMany("Markets")
+                        .HasForeignKey("EventId");
+
                     b.HasOne("AnchorMarket.Domain.Entities.Group", "Group")
                         .WithMany("Markets")
                         .HasForeignKey("GroupId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("AnchorMarket.Domain.Entities.Match", "Match")
+                        .WithMany("Markets")
+                        .HasForeignKey("MatchId");
+
+                    b.Navigation("Category");
+
+                    b.Navigation("Event");
+
                     b.Navigation("Group");
+
+                    b.Navigation("Match");
                 });
 
             modelBuilder.Entity("AnchorMarket.Domain.Entities.MarketResolution", b =>
@@ -672,6 +1376,79 @@ namespace AnchorMarket.Infrastructure.Migrations
                     b.Navigation("Market");
 
                     b.Navigation("WinningOutcome");
+                });
+
+            modelBuilder.Entity("AnchorMarket.Domain.Entities.MarketTemplate", b =>
+                {
+                    b.HasOne("AnchorMarket.Domain.Entities.Sport", "Sport")
+                        .WithMany()
+                        .HasForeignKey("SportId");
+
+                    b.Navigation("Sport");
+                });
+
+            modelBuilder.Entity("AnchorMarket.Domain.Entities.Match", b =>
+                {
+                    b.HasOne("AnchorMarket.Domain.Entities.Team", "AwayTeam")
+                        .WithMany()
+                        .HasForeignKey("AwayTeamId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AnchorMarket.Domain.Entities.Event", "Event")
+                        .WithMany("Matches")
+                        .HasForeignKey("EventId");
+
+                    b.HasOne("AnchorMarket.Domain.Entities.Team", "HomeTeam")
+                        .WithMany()
+                        .HasForeignKey("HomeTeamId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AnchorMarket.Domain.Entities.League", "League")
+                        .WithMany("Matches")
+                        .HasForeignKey("LeagueId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AwayTeam");
+
+                    b.Navigation("Event");
+
+                    b.Navigation("HomeTeam");
+
+                    b.Navigation("League");
+                });
+
+            modelBuilder.Entity("AnchorMarket.Domain.Entities.MatchState", b =>
+                {
+                    b.HasOne("AnchorMarket.Domain.Entities.Match", "Match")
+                        .WithOne("State")
+                        .HasForeignKey("AnchorMarket.Domain.Entities.MatchState", "MatchId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Match");
+                });
+
+            modelBuilder.Entity("AnchorMarket.Domain.Entities.MatchStream", b =>
+                {
+                    b.HasOne("AnchorMarket.Domain.Entities.Match", "Match")
+                        .WithMany("Streams")
+                        .HasForeignKey("MatchId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Match");
+                });
+
+            modelBuilder.Entity("AnchorMarket.Domain.Entities.Notification", b =>
+                {
+                    b.HasOne("AnchorMarket.Domain.Entities.User", null)
+                        .WithMany("Notifications")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("AnchorMarket.Domain.Entities.Outcome", b =>
@@ -696,6 +1473,17 @@ namespace AnchorMarket.Infrastructure.Migrations
                     b.Navigation("Outcome");
                 });
 
+            modelBuilder.Entity("AnchorMarket.Domain.Entities.PriceHistory", b =>
+                {
+                    b.HasOne("AnchorMarket.Domain.Entities.Outcome", "Outcome")
+                        .WithMany("PriceHistory")
+                        .HasForeignKey("OutcomeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Outcome");
+                });
+
             modelBuilder.Entity("AnchorMarket.Domain.Entities.Session", b =>
                 {
                     b.HasOne("AnchorMarket.Domain.Entities.User", "User")
@@ -705,6 +1493,17 @@ namespace AnchorMarket.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("AnchorMarket.Domain.Entities.Team", b =>
+                {
+                    b.HasOne("AnchorMarket.Domain.Entities.Sport", "Sport")
+                        .WithMany("Teams")
+                        .HasForeignKey("SportId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Sport");
                 });
 
             modelBuilder.Entity("AnchorMarket.Domain.Entities.TradeExecution", b =>
@@ -754,11 +1553,37 @@ namespace AnchorMarket.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("AnchorMarket.Domain.Entities.Category", b =>
+                {
+                    b.Navigation("Events");
+
+                    b.Navigation("Markets");
+
+                    b.Navigation("SubCategories");
+                });
+
+            modelBuilder.Entity("AnchorMarket.Domain.Entities.Comment", b =>
+                {
+                    b.Navigation("Replies");
+                });
+
+            modelBuilder.Entity("AnchorMarket.Domain.Entities.Event", b =>
+                {
+                    b.Navigation("Markets");
+
+                    b.Navigation("Matches");
+                });
+
             modelBuilder.Entity("AnchorMarket.Domain.Entities.Group", b =>
                 {
                     b.Navigation("Markets");
 
                     b.Navigation("Memberships");
+                });
+
+            modelBuilder.Entity("AnchorMarket.Domain.Entities.League", b =>
+                {
+                    b.Navigation("Matches");
                 });
 
             modelBuilder.Entity("AnchorMarket.Domain.Entities.LimitOrder", b =>
@@ -768,19 +1593,52 @@ namespace AnchorMarket.Infrastructure.Migrations
 
             modelBuilder.Entity("AnchorMarket.Domain.Entities.Market", b =>
                 {
+                    b.Navigation("Comments");
+
+                    b.Navigation("FavoritedBy");
+
                     b.Navigation("Outcomes");
 
                     b.Navigation("Resolution");
                 });
 
+            modelBuilder.Entity("AnchorMarket.Domain.Entities.Match", b =>
+                {
+                    b.Navigation("Markets");
+
+                    b.Navigation("State");
+
+                    b.Navigation("Streams");
+                });
+
             modelBuilder.Entity("AnchorMarket.Domain.Entities.Outcome", b =>
                 {
                     b.Navigation("Positions");
+
+                    b.Navigation("PriceHistory");
+                });
+
+            modelBuilder.Entity("AnchorMarket.Domain.Entities.Sport", b =>
+                {
+                    b.Navigation("Leagues");
+
+                    b.Navigation("Teams");
+                });
+
+            modelBuilder.Entity("AnchorMarket.Domain.Entities.Team", b =>
+                {
+                    b.Navigation("FavoritedBy");
                 });
 
             modelBuilder.Entity("AnchorMarket.Domain.Entities.User", b =>
                 {
                     b.Navigation("Accounts");
+
+                    b.Navigation("FavoriteMarkets");
+
+                    b.Navigation("FavoriteTeams");
+
+                    b.Navigation("Notifications");
 
                     b.Navigation("Sessions");
 

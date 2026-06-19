@@ -4,8 +4,11 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace AnchorMarket.Infrastructure.Persistence.Configurations;
 
+/// <summary>EF Core configuration for the <see cref="LimitOrder"/> entity.</summary>
 public class LimitOrderConfiguration : IEntityTypeConfiguration<LimitOrder>
 {
+    /// <summary>Configures the <see cref="LimitOrder"/> entity mappings.</summary>
+    /// <param name="builder">The entity type builder.</param>
     public void Configure(EntityTypeBuilder<LimitOrder> builder)
     {
         builder.HasKey(lo => lo.Id);

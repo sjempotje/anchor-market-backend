@@ -4,8 +4,10 @@ using AutoMapper;
 
 namespace AnchorMarket.Application.Common.Mappings;
 
+/// <summary>AutoMapper profile for mapping between <see cref="LimitOrder"/> and <see cref="LimitOrderDto"/>.</summary>
 public class LimitOrderProfile : Profile
 {
+    /// <summary>Configures entity-to-DTO mappings.</summary>
     public LimitOrderProfile()
     {
         CreateMap<LimitOrder, LimitOrderDto>();
