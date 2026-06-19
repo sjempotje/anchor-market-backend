@@ -39,7 +39,7 @@ public class LimitOrderTests(CustomWebApplicationFactory factory) : TestBase(fac
             quantity = 100.0m,
             expiresAt = (DateTimeOffset?)DateTimeOffset.UtcNow.AddDays(7)
         });
-        Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]
@@ -157,7 +157,7 @@ public class LimitOrderTests(CustomWebApplicationFactory factory) : TestBase(fac
             quantity = 100.0m,
             expiresAt = (DateTimeOffset?)DateTimeOffset.UtcNow.AddDays(7)
         });
-        Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]
@@ -179,7 +179,7 @@ public class LimitOrderTests(CustomWebApplicationFactory factory) : TestBase(fac
             quantity = 100.0m,
             expiresAt = (DateTimeOffset?)DateTimeOffset.UtcNow.AddDays(7)
         });
-        Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]
@@ -201,7 +201,7 @@ public class LimitOrderTests(CustomWebApplicationFactory factory) : TestBase(fac
             quantity = 100.0m,
             expiresAt = (DateTimeOffset?)DateTimeOffset.UtcNow.AddDays(7)
         });
-        Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]
@@ -223,6 +223,6 @@ public class LimitOrderTests(CustomWebApplicationFactory factory) : TestBase(fac
             quantity = 0.0m,
             expiresAt = (DateTimeOffset?)DateTimeOffset.UtcNow.AddDays(7)
         });
-        Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 }

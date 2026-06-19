@@ -6,12 +6,8 @@ public record AccountDto(
     Guid UserId,
     string AccountId,
     string ProviderId,
-    string? AccessToken,
-    string? RefreshToken,
     DateTimeOffset? AccessTokenExpiresAt,
     DateTimeOffset? RefreshTokenExpiresAt,
     string? Scope,
-    string? IdToken,
-    string? Password,
     DateTimeOffset CreatedAt,
     DateTimeOffset? UpdatedAt);

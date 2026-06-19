@@ -12,12 +12,14 @@ public class LeagueTests(CustomWebApplicationFactory factory) : TestBase(factory
     private async Task<Guid> CreateSport(string suffix)
     {
         await RegisterUser($"lsport_{suffix}", $"lsport_{suffix}@example.com");
+        TestAuthHandler.IsAdmin = true;
         var r = await Client.PostAsJsonAsync("/api/sports", new
         {
             name = $"Soccer {suffix}",
             slug = $"soccer-{suffix}",
             type = (int)SportType.Soccer
         });
+        TestAuthHandler.IsAdmin = false;
         r.EnsureSuccessStatusCode();
         return Guid.Parse(r.Headers.Location!.Segments[^1]);
     }

@@ -41,17 +41,35 @@ public class PlacePositionCommandHandler : IRequestHandler<PlacePositionCommand,
         if (market.Status != MarketStatus.Open)
             throw new InvalidOperationException($"Market is not open. Status: {market.Status}");
 
+        if (request.Amount < 0.01m)
+            throw new InvalidOperationException("Amount must be at least 0.01.");
+
         var outcome = market.Outcomes.FirstOrDefault(o => o.Id == request.OutcomeId);
         if (outcome is null)
             throw new NotFoundException("Outcome not found for this market.");
 
-        var existingPositions = await _dbContext.Positions
-            .Where(p => p.OutcomeId == request.OutcomeId)
-            .ToListAsync(cancellationToken);
+        // Derive price from the order book mid-point (best ask + best bid) / 2.
+        // This is manipulation-resistant because it reflects actual resting orders,
+        // not a user-controllable average of historical positions.
+        var bestAsk = await _dbContext.LimitOrders
+            .Where(o => o.OutcomeId == request.OutcomeId
+                     && o.Side == OrderSide.Sell
+                     && (o.Status == OrderStatus.Pending || o.Status == OrderStatus.PartiallyFilled))
+            .MinAsync(o => (decimal?)o.Price, cancellationToken);
 
-        var currentPrice = existingPositions.Any()
-            ? existingPositions.Sum(p => p.EntryPrice * p.Shares) / existingPositions.Sum(p => p.Shares)
-            : 0.5m;
+        var bestBid = await _dbContext.LimitOrders
+            .Where(o => o.OutcomeId == request.OutcomeId
+                     && o.Side == OrderSide.Buy
+                     && (o.Status == OrderStatus.Pending || o.Status == OrderStatus.PartiallyFilled))
+            .MaxAsync(o => (decimal?)o.Price, cancellationToken);
+
+        var currentPrice = (bestAsk, bestBid) switch
+        {
+            ({ } ask, { } bid) => (ask + bid) / 2m,
+            ({ } ask, null)    => ask,
+            (null, { } bid)    => bid,
+            _                  => 0.5m
+        };
 
         var shares = request.Amount / currentPrice;
 

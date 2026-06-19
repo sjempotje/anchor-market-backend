@@ -36,7 +36,7 @@ public class SportsController(ISender sender) : ControllerBase
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>201 response with the new sport ID.</returns>
     [HttpPost]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Create([FromBody] CreateSportCommand command, CancellationToken cancellationToken)
     {
         var id = await sender.Send(command, cancellationToken);

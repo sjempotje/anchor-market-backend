@@ -194,7 +194,7 @@ public class MarketTests(CustomWebApplicationFactory factory) : TestBase(factory
             winningOutcomeId = outcomeId,
             resolverId = userId
         });
-        Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]
@@ -230,6 +230,6 @@ public class MarketTests(CustomWebApplicationFactory factory) : TestBase(factory
             marketId,
             requestingUserId = otherUserId
         });
-        Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 }

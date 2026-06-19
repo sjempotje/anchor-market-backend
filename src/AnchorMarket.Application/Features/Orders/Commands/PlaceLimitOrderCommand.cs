@@ -4,6 +4,7 @@ using AnchorMarket.Domain.Entities;
 using AnchorMarket.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using System.Data;
 
 namespace AnchorMarket.Application.Features.Orders.Commands;
 
@@ -57,15 +58,37 @@ public class PlaceLimitOrderCommandHandler(
         }
         else
         {
+            // Explicit transaction ensures the availability read and order insert are
+            // atomic. On PostgreSQL this runs at Serializable isolation to prevent
+            // concurrent sell requests from double-booking the same shares.
+            await using var tx = await dbContext.BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken);
+
             var existingPosition = await dbContext.Positions.FirstOrDefaultAsync(
                 p => p.UserId == request.UserId && p.OutcomeId == request.OutcomeId, cancellationToken);
 
-            if (existingPosition is null || existingPosition.Shares < request.Quantity)
+            if (existingPosition is null)
+                throw new InvalidOperationException("Insufficient shares to sell.");
+
+            var pendingLockedShares = await dbContext.LimitOrders
+                .Where(o => o.UserId == request.UserId
+                         && o.OutcomeId == request.OutcomeId
+                         && o.Side == OrderSide.Sell
+                         && (o.Status == OrderStatus.Pending || o.Status == OrderStatus.PartiallyFilled))
+                .SumAsync(o => o.Quantity - o.FilledQuantity, cancellationToken);
+
+            var availableShares = existingPosition.Shares - pendingLockedShares;
+            if (availableShares < request.Quantity)
                 throw new InvalidOperationException("Insufficient shares to sell.");
 
             order = LimitOrder.CreateSell(
                 request.MarketId, request.OutcomeId, request.UserId,
                 request.Price, request.Quantity, request.ExpiresAt);
+
+            dbContext.LimitOrders.Add(order);
+            await dbContext.SaveChangesAsync(cancellationToken);
+            await tx.CommitAsync(cancellationToken);
+
+            return order.Id;
         }
 
         dbContext.LimitOrders.Add(order);

@@ -25,12 +25,14 @@ public class SportsTests(CustomWebApplicationFactory factory) : TestBase(factory
         var suffix = Guid.NewGuid().ToString("N")[..8];
         await RegisterUser($"sports_{suffix}", $"sports_{suffix}@example.com");
 
+        TestAuthHandler.IsAdmin = true;
         var response = await Client.PostAsJsonAsync("/api/sports", new
         {
             name = $"Football {suffix}",
             slug = $"football-{suffix}",
             type = (int)SportType.Soccer
         });
+        TestAuthHandler.IsAdmin = false;
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         var id = Guid.Parse(response.Headers.Location!.Segments[^1]);
@@ -43,12 +45,14 @@ public class SportsTests(CustomWebApplicationFactory factory) : TestBase(factory
         var suffix = Guid.NewGuid().ToString("N")[..8];
         await RegisterUser($"sportsid_{suffix}", $"sportsid_{suffix}@example.com");
 
+        TestAuthHandler.IsAdmin = true;
         var createResponse = await Client.PostAsJsonAsync("/api/sports", new
         {
             name = $"Basketball {suffix}",
             slug = $"basketball-{suffix}",
             type = (int)SportType.Basketball
         });
+        TestAuthHandler.IsAdmin = false;
 
         var id = Guid.Parse(createResponse.Headers.Location!.Segments[^1]);
 

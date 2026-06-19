@@ -54,7 +54,8 @@ public class MarketsController(ISender sender) : ControllerBase
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateMarketCommand command, CancellationToken cancellationToken)
     {
         if (id != command.MarketId) return BadRequest();
-        await sender.Send(command, cancellationToken);
+        var callerId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        await sender.Send(command with { CallerId = callerId }, cancellationToken);
         return NoContent();
     }
 
@@ -65,7 +66,8 @@ public class MarketsController(ISender sender) : ControllerBase
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
-        await sender.Send(new DeleteMarketCommand(id), cancellationToken);
+        var callerId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        await sender.Send(new DeleteMarketCommand(id, callerId), cancellationToken);
         return NoContent();
     }
 }

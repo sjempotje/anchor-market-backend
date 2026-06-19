@@ -1,5 +1,8 @@
 using AnchorMarket.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage;
+using System.Data;
 
 namespace AnchorMarket.Application.Common.Interfaces;
 
@@ -74,4 +77,10 @@ public interface IApplicationDbContext
     DbSet<FavoriteTeam> FavoriteTeams { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>Exposes database operations (transactions, migrations) to application handlers.</summary>
+    DatabaseFacade Database { get; }
+
+    /// <summary>Begins a transaction at the specified isolation level. Falls back to default isolation on providers that don't support it (e.g. SQLite).</summary>
+    Task<IDbContextTransaction> BeginTransactionAsync(IsolationLevel isolationLevel, CancellationToken cancellationToken = default);
 }

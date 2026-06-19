@@ -36,7 +36,7 @@ public class TeamsController(ISender sender) : ControllerBase
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>201 response with the new team ID.</returns>
     [HttpPost]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Create([FromBody] CreateTeamCommand command, CancellationToken cancellationToken)
     {
         var id = await sender.Send(command, cancellationToken);

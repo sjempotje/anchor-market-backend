@@ -13,6 +13,7 @@ public class MatchTests(CustomWebApplicationFactory factory) : TestBase(factory)
     {
         await RegisterUser($"msetup_{suffix}", $"msetup_{suffix}@example.com");
 
+        TestAuthHandler.IsAdmin = true;
         var sportResponse = await Client.PostAsJsonAsync("/api/sports", new
         {
             name = $"Match Sport {suffix}",
@@ -21,14 +22,12 @@ public class MatchTests(CustomWebApplicationFactory factory) : TestBase(factory)
         });
         var sportId = Guid.Parse(sportResponse.Headers.Location!.Segments[^1]);
 
-        TestAuthHandler.IsAdmin = true;
         var leagueResponse = await Client.PostAsJsonAsync("/api/leagues", new
         {
             name = $"Match League {suffix}",
             slug = $"match-league-{suffix}",
             sportId
         });
-        TestAuthHandler.IsAdmin = false;
         var leagueId = Guid.Parse(leagueResponse.Headers.Location!.Segments[^1]);
 
         var homeResponse = await Client.PostAsJsonAsync("/api/teams", new
@@ -48,6 +47,7 @@ public class MatchTests(CustomWebApplicationFactory factory) : TestBase(factory)
             sportId
         });
         var awayTeamId = Guid.Parse(awayResponse.Headers.Location!.Segments[^1]);
+        TestAuthHandler.IsAdmin = false;
 
         return (sportId, leagueId, homeTeamId, awayTeamId);
     }

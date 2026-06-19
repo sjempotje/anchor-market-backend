@@ -1,7 +1,7 @@
 using AnchorMarket.Application.Common.Exceptions;
 using AnchorMarket.Application.Common.Interfaces;
-using Microsoft.EntityFrameworkCore;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace AnchorMarket.Application.Features.GroupMarkets.Commands;
 
@@ -27,7 +27,7 @@ public class CancelGroupMarketCommandHandler : IRequestHandler<CancelGroupMarket
             throw new NotFoundException($"Market with ID {request.MarketId} not found.");
 
         if (market.CreatorId != request.RequestingUserId)
-            throw new InvalidOperationException("Only the market creator can cancel this market.");
+            throw new ForbiddenException("Only the market creator can cancel this market.");
 
         if (market.Status != Domain.Enums.MarketStatus.Open)
             throw new InvalidOperationException($"Market is not open. Status: {market.Status}");

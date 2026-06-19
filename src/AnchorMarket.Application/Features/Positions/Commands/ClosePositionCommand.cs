@@ -1,5 +1,6 @@
 using AnchorMarket.Application.Common.Exceptions;
 using AnchorMarket.Application.Common.Interfaces;
+using AnchorMarket.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using MediatR;
 
@@ -28,10 +29,20 @@ public class ClosePositionCommandHandler : IRequestHandler<ClosePositionCommand>
         if (position is null)
             throw new NotFoundException($"Position with ID {request.PositionId} not found.");
 
+        var marketStatus = position.Outcome.Market.Status;
+        if (marketStatus != MarketStatus.Open && marketStatus != MarketStatus.Resolved)
+            throw new InvalidOperationException($"Cannot close a position on a {marketStatus} market.");
+
         var wallet = await _context.Wallets.FirstOrDefaultAsync(w => w.UserId == request.UserId, cancellationToken);
         if (wallet is not null)
         {
-            var returnAmount = position.Shares * position.CurrentFairValue;
+            // Resolved markets: pay out at settlement fair value (1.0 for winners, 0.0 for losers).
+            // Open markets: return the original cost basis so early exits can't exploit a
+            // manipulated CurrentFairValue that hasn't been through the resolution process.
+            var returnAmount = marketStatus == MarketStatus.Resolved
+                ? position.Shares * position.CurrentFairValue
+                : position.Shares * position.EntryPrice;
+
             wallet.Credit(returnAmount);
         }
 

@@ -149,10 +149,14 @@ public class MatchOrdersCommandHandler : IRequestHandler<MatchOrdersCommand, Mat
                 p.UserId == sellerOrder.UserId &&
                 p.OutcomeId == trade.OutcomeId, cancellationToken);
 
-        if (sellerPosition is not null)
-        {
-            sellerPosition.ReducePosition(trade.Shares);
-        }
+        // A sell order must always have a backing position. If it is missing the sell
+        // order was placed against shares that no longer exist, crediting the seller
+        // here would mint money from nothing.
+        if (sellerPosition is null)
+            throw new InvalidOperationException(
+                $"Seller position not found for user {sellerOrder.UserId} on outcome {trade.OutcomeId}. Trade aborted.");
+
+        sellerPosition.ReducePosition(trade.Shares);
 
         var overpayment = (buyerOrder.Price - trade.ExecutedPrice) * trade.Shares;
         if (overpayment > 0)

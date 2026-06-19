@@ -1,6 +1,8 @@
 using AnchorMarket.Application.Common.Interfaces;
 using AnchorMarket.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
+using System.Data;
 
 namespace AnchorMarket.Infrastructure.Persistence;
 
@@ -53,6 +55,14 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<FavoriteMarket> FavoriteMarkets => Set<FavoriteMarket>();
     public DbSet<FavoriteTeam> FavoriteTeams => Set<FavoriteTeam>();
+
+    public Task<IDbContextTransaction> BeginTransactionAsync(IsolationLevel isolationLevel, CancellationToken cancellationToken = default)
+    {
+        if (Database.ProviderName?.Contains("Sqlite") == true)
+            return Database.BeginTransactionAsync(cancellationToken);
+
+        return Database.BeginTransactionAsync(isolationLevel, cancellationToken);
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

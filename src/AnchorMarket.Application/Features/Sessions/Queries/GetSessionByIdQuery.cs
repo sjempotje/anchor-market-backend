@@ -1,3 +1,4 @@
+using AnchorMarket.Application.Common.Exceptions;
 using AnchorMarket.Application.Common.Interfaces;
 using AnchorMarket.Application.Features.Sessions.DTOs;
 using AnchorMarket.Domain.Entities;
@@ -5,8 +6,8 @@ using MediatR;
 
 namespace AnchorMarket.Application.Features.Sessions.Queries;
 
-/// <summary>Query to retrieve a session by its ID.</summary>
-public record GetSessionByIdQuery(Guid Id) : IRequest<SessionDto?>;
+/// <summary>Query to retrieve a session by its ID. Caller must own the session.</summary>
+public record GetSessionByIdQuery(Guid Id, Guid CallerId) : IRequest<SessionDto?>;
 
 /// <summary>Handles retrieving a session by ID.</summary>
 public class GetSessionByIdQueryHandler : IRequestHandler<GetSessionByIdQuery, SessionDto?>
@@ -18,7 +19,6 @@ public class GetSessionByIdQueryHandler : IRequestHandler<GetSessionByIdQuery, S
         _context = context;
     }
 
-    /// <summary>Retrieves the session by ID, or null if not found.</summary>
     public async Task<SessionDto?> Handle(GetSessionByIdQuery request, CancellationToken cancellationToken)
     {
         var session = await _context.Set<Session>().FindAsync([request.Id], cancellationToken);
@@ -26,10 +26,12 @@ public class GetSessionByIdQueryHandler : IRequestHandler<GetSessionByIdQuery, S
         if (session is null)
             return null;
 
+        if (session.UserId != request.CallerId)
+            throw new ForbiddenException("You do not have access to this session.");
+
         return new SessionDto(
             session.Id,
             session.UserId,
-            session.Token,
             session.ExpiresAt,
             session.IpAddress,
             session.UserAgent,

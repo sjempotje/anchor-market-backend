@@ -34,8 +34,8 @@ public class UsersController(ISender sender) : ControllerBase
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateUserCommand command, CancellationToken cancellationToken)
     {
         var callerId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        if (id != command.UserId || id != callerId) return Forbid();
-        await sender.Send(command, cancellationToken);
+        if (id != command.UserId) return BadRequest();
+        await sender.Send(command with { CallerId = callerId }, cancellationToken);
         return NoContent();
     }
 
@@ -47,8 +47,7 @@ public class UsersController(ISender sender) : ControllerBase
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
         var callerId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        if (id != callerId) return Forbid();
-        await sender.Send(new DeleteUserCommand(id), cancellationToken);
+        await sender.Send(new DeleteUserCommand(id, callerId), cancellationToken);
         return NoContent();
     }
 }

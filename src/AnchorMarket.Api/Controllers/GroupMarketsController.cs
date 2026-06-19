@@ -4,6 +4,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using System.Security.Claims;
 
 namespace AnchorMarket.Api.Controllers;
 
@@ -20,7 +21,8 @@ public class GroupMarketsController(ISender sender) : ControllerBase
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
     {
-        var market = await sender.Send(new GetGroupMarketByIdQuery(id), cancellationToken);
+        var callerId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var market = await sender.Send(new GetGroupMarketByIdQuery(id, callerId), cancellationToken);
         return market is null ? NotFound() : Ok(market);
     }
 
@@ -42,7 +44,8 @@ public class GroupMarketsController(ISender sender) : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateGroupMarketCommand command, CancellationToken cancellationToken)
     {
-        var id = await sender.Send(command, cancellationToken);
+        var callerId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var id = await sender.Send(command with { CreatorId = callerId }, cancellationToken);
         return CreatedAtAction(nameof(GetById), new { id }, null);
     }
 

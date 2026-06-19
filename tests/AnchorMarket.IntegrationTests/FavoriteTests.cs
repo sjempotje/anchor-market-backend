@@ -44,6 +44,7 @@ public class FavoriteTests(CustomWebApplicationFactory factory) : TestBase(facto
         var suffix = Guid.NewGuid().ToString("N")[..8];
         await RegisterUser($"favteam_{suffix}", $"favteam_{suffix}@example.com");
 
+        TestAuthHandler.IsAdmin = true;
         var sportResponse = await Client.PostAsJsonAsync("/api/sports", new
         {
             name = $"Sport {suffix}",
@@ -59,6 +60,7 @@ public class FavoriteTests(CustomWebApplicationFactory factory) : TestBase(facto
             slug = $"team-{suffix}",
             sportId
         });
+        TestAuthHandler.IsAdmin = false;
         var teamId = Guid.Parse(teamResponse.Headers.Location!.Segments[^1]);
 
         var response = await Client.PostAsync($"/api/favorites/teams/{teamId}", null);

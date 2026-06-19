@@ -2,11 +2,12 @@ using AnchorMarket.Application.Common.Exceptions;
 using AnchorMarket.Application.Common.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using MediatR;
+using System.Text.Json.Serialization;
 
 namespace AnchorMarket.Application.Features.Users.Commands;
 
-/// <summary>Command to update a user's profile.</summary>
-public record UpdateUserCommand(Guid UserId, string Username, string Email) : IRequest;
+/// <summary>Command to update a user's profile. Caller must own the account.</summary>
+public record UpdateUserCommand(Guid UserId, string Username, string Email, [property: JsonIgnore] Guid CallerId = default) : IRequest;
 
 /// <summary>Handles updating a user's profile.</summary>
 public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand>
@@ -21,6 +22,9 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand>
     /// <summary>Updates the user's username and email if not already taken.</summary>
     public async Task Handle(UpdateUserCommand request, CancellationToken cancellationToken)
     {
+        if (request.UserId != request.CallerId)
+            throw new ForbiddenException("You can only update your own profile.");
+
         var user = await _context.Users.FindAsync([request.UserId], cancellationToken);
 
         if (user is null)

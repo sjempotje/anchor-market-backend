@@ -12,12 +12,14 @@ public class TeamTests(CustomWebApplicationFactory factory) : TestBase(factory)
     private async Task<Guid> CreateSport(string suffix)
     {
         await RegisterUser($"tsport_{suffix}", $"tsport_{suffix}@example.com");
+        TestAuthHandler.IsAdmin = true;
         var r = await Client.PostAsJsonAsync("/api/sports", new
         {
             name = $"Tennis {suffix}",
             slug = $"tennis-{suffix}",
             type = (int)SportType.Tennis
         });
+        TestAuthHandler.IsAdmin = false;
         r.EnsureSuccessStatusCode();
         return Guid.Parse(r.Headers.Location!.Segments[^1]);
     }
@@ -38,6 +40,7 @@ public class TeamTests(CustomWebApplicationFactory factory) : TestBase(factory)
         var suffix = Guid.NewGuid().ToString("N")[..8];
         var sportId = await CreateSport(suffix);
 
+        TestAuthHandler.IsAdmin = true;
         var response = await Client.PostAsJsonAsync("/api/teams", new
         {
             name = $"FC Barcelona {suffix}",
@@ -45,6 +48,7 @@ public class TeamTests(CustomWebApplicationFactory factory) : TestBase(factory)
             slug = $"fc-barcelona-{suffix}",
             sportId
         });
+        TestAuthHandler.IsAdmin = false;
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         var id = Guid.Parse(response.Headers.Location!.Segments[^1]);
@@ -57,6 +61,7 @@ public class TeamTests(CustomWebApplicationFactory factory) : TestBase(factory)
         var suffix = Guid.NewGuid().ToString("N")[..8];
         var sportId = await CreateSport(suffix + "b");
 
+        TestAuthHandler.IsAdmin = true;
         var createResponse = await Client.PostAsJsonAsync("/api/teams", new
         {
             name = $"Real Madrid {suffix}",
@@ -64,6 +69,7 @@ public class TeamTests(CustomWebApplicationFactory factory) : TestBase(factory)
             slug = $"real-madrid-{suffix}",
             sportId
         });
+        TestAuthHandler.IsAdmin = false;
 
         var id = Guid.Parse(createResponse.Headers.Location!.Segments[^1]);
 

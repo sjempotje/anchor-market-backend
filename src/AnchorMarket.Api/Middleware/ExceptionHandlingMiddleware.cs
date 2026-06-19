@@ -40,6 +40,13 @@ public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Exception
             logger.LogWarning(ex, "Not found");
             context.Response.StatusCode = StatusCodes.Status404NotFound;
         }
+        catch (InvalidOperationException ex)
+        {
+            context.Response.StatusCode = StatusCodes.Status400BadRequest;
+            context.Response.ContentType = "application/json";
+            var body = JsonSerializer.Serialize(new { error = ex.Message });
+            await context.Response.WriteAsync(body);
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, "Unhandled exception");

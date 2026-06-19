@@ -23,6 +23,9 @@ public class WalletConfiguration : IEntityTypeConfiguration<Wallet>
             .HasPrecision(18, 6)
             .IsRequired();
 
+        builder.Property(w => w.Version)
+            .IsConcurrencyToken();
+
         builder.HasOne<User>()
             .WithOne(u => u.Wallet)
             .HasForeignKey<Wallet>(w => w.UserId)
