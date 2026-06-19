@@ -13,6 +13,11 @@ namespace AnchorMarket.Api.Controllers;
 [Authorize]
 public class PositionsController(ISender sender) : ControllerBase
 {
+    /// <summary>Retrieves all positions.</summary>
+    [HttpGet]
+    public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
+        => Ok(await sender.Send(new GetPositionsQuery(), cancellationToken));
+
     /// <summary>Retrieves a position by its ID.</summary>
     /// <param name="id">The position ID.</param>
     /// <param name="cancellationToken">Cancellation token.</param>

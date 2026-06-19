@@ -13,21 +13,21 @@ public class WalletTests(CustomWebApplicationFactory factory) : TestBase(factory
     {
         var suffix = Guid.NewGuid().ToString("N")[..8];
         var userId = await RegisterUser($"wal_{suffix}", $"wal_{suffix}@example.com");
-        var walletId = await GetWalletId(userId);
 
-        var response = await Client.GetAsync($"/api/wallets/{walletId}");
+        var response = await Client.GetAsync($"/api/wallets/user/{userId}");
         response.EnsureSuccessStatusCode();
 
         var wallet = await response.Content.ReadFromJsonAsync<WalletDto>();
         Assert.NotNull(wallet);
-        Assert.Equal(walletId, wallet.Id);
         Assert.Equal(userId, wallet.UserId);
     }
 
     [Fact]
     public async Task GetWallet_WithNonExistentId_ReturnsNotFound()
     {
-        var response = await Client.GetAsync($"/api/wallets/{Guid.NewGuid()}");
+        var nonExistentId = Guid.NewGuid();
+        TestAuthHandler.CurrentUserId = nonExistentId;
+        var response = await Client.GetAsync($"/api/wallets/user/{nonExistentId}");
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
@@ -36,9 +36,8 @@ public class WalletTests(CustomWebApplicationFactory factory) : TestBase(factory
     {
         var suffix = Guid.NewGuid().ToString("N")[..8];
         var userId = await RegisterUser($"waltr_{suffix}", $"waltr_{suffix}@example.com");
-        var walletId = await GetWalletId(userId);
 
-        var response = await Client.GetAsync($"/api/wallets/{walletId}/transactions");
+        var response = await Client.GetAsync($"/api/wallets/user/{userId}/transactions");
         response.EnsureSuccessStatusCode();
 
         var transactions = await response.Content.ReadFromJsonAsync<List<TransactionDto>>();
@@ -48,7 +47,9 @@ public class WalletTests(CustomWebApplicationFactory factory) : TestBase(factory
     [Fact]
     public async Task GetWalletTransactions_WithNonExistentId_ReturnsEmptyList()
     {
-        var response = await Client.GetAsync($"/api/wallets/{Guid.NewGuid()}/transactions");
+        var nonExistentId = Guid.NewGuid();
+        TestAuthHandler.CurrentUserId = nonExistentId;
+        var response = await Client.GetAsync($"/api/wallets/user/{nonExistentId}/transactions");
         response.EnsureSuccessStatusCode();
 
         var transactions = await response.Content.ReadFromJsonAsync<List<TransactionDto>>();

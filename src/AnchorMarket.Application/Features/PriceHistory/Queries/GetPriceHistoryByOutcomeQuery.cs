@@ -15,10 +15,12 @@ public class GetPriceHistoryByOutcomeQueryHandler(IApplicationDbContext context,
     : IRequestHandler<GetPriceHistoryByOutcomeQuery, List<PriceHistoryDto>>
 {
     /// <summary>Returns the price history for the specified outcome, ordered by timestamp.</summary>
-    public Task<List<PriceHistoryDto>> Handle(GetPriceHistoryByOutcomeQuery request, CancellationToken cancellationToken)
-        => context.PriceHistory
+    public async Task<List<PriceHistoryDto>> Handle(GetPriceHistoryByOutcomeQuery request, CancellationToken cancellationToken)
+    {
+        var history = await context.PriceHistory
             .Where(p => p.OutcomeId == request.OutcomeId)
-            .OrderBy(p => p.Timestamp)
             .ProjectTo<PriceHistoryDto>(mapper.ConfigurationProvider)
             .ToListAsync(cancellationToken);
+        return [.. history.OrderBy(p => p.Timestamp)];
+    }
 }

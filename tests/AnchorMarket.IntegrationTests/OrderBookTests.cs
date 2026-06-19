@@ -73,7 +73,9 @@ public class OrderBookTests(CustomWebApplicationFactory factory) : TestBase(fact
         var userId = await RegisterUser($"match_{suffix}", $"match_{suffix}@example.com");
         var marketId = await CreateMarket($"Match Market {suffix}", "Desc", userId, ["Yes", "No"]);
 
+        TestAuthHandler.IsAdmin = true;
         var response = await Client.PostAsync($"/api/orderbooks/market/{marketId}/match", null);
+        TestAuthHandler.IsAdmin = false;
         response.EnsureSuccessStatusCode();
 
         var result = await response.Content.ReadFromJsonAsync<MatchingResult>();
@@ -83,7 +85,9 @@ public class OrderBookTests(CustomWebApplicationFactory factory) : TestBase(fact
     [Fact]
     public async Task MatchOrders_WithNonExistentMarket_ReturnsEmptyResult()
     {
+        TestAuthHandler.IsAdmin = true;
         var response = await Client.PostAsync($"/api/orderbooks/market/{Guid.NewGuid()}/match", null);
+        TestAuthHandler.IsAdmin = false;
         response.EnsureSuccessStatusCode();
 
         var result = await response.Content.ReadFromJsonAsync<MatchingResult>();

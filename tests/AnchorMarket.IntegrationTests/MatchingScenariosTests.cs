@@ -39,6 +39,7 @@ public class MatchingScenarios(CustomWebApplicationFactory factory) : TestBase(f
         await CreditWallet(bob, 1000m);
         await CreditWallet(charlie, 1000m);
 
+        TestAuthHandler.CurrentUserId = alice;
         var posResponse = await Client.PostAsJsonAsync("/api/positions", new
         {
             userId = alice,
@@ -53,7 +54,9 @@ public class MatchingScenarios(CustomWebApplicationFactory factory) : TestBase(f
 
         var buyOrderId = await PlaceLimitOrder(bob, marketId, yesId, side: 0, price: 0.65m, quantity: 80.0m);
 
+        TestAuthHandler.IsAdmin = true;
         var matchResponse = await Client.PostAsync($"/api/OrderBooks/market/{marketId}/match?outcomeId={yesId}", null);
+        TestAuthHandler.IsAdmin = false;
         matchResponse.EnsureSuccessStatusCode();
         var matchResult = await matchResponse.Content.ReadFromJsonAsync<MatchingResultDto>();
         Assert.NotNull(matchResult);
@@ -116,12 +119,11 @@ public class MatchingScenarios(CustomWebApplicationFactory factory) : TestBase(f
         var bobPnlPos = Assert.Single(bobPnl, p => p.OutcomeId == yesId);
         Assert.Equal(1.0m, bobPnlPos.CurrentFairValue);
 
-        var aliceWalletId = await GetWalletId(alice);
-        var bobWalletId = await GetWalletId(bob);
-
-        var aliceWalletBefore = await Client.GetFromJsonAsync<WalletDto>($"/api/wallets/{aliceWalletId}");
+        TestAuthHandler.CurrentUserId = alice;
+        var aliceWalletBefore = await Client.GetFromJsonAsync<WalletDto>($"/api/wallets/user/{alice}");
         Assert.NotNull(aliceWalletBefore);
-        var bobWalletBefore = await Client.GetFromJsonAsync<WalletDto>($"/api/wallets/{bobWalletId}");
+        TestAuthHandler.CurrentUserId = bob;
+        var bobWalletBefore = await Client.GetFromJsonAsync<WalletDto>($"/api/wallets/user/{bob}");
         Assert.NotNull(bobWalletBefore);
 
         TestAuthHandler.CurrentUserId = alice;
@@ -136,12 +138,14 @@ public class MatchingScenarios(CustomWebApplicationFactory factory) : TestBase(f
         Assert.Equal(HttpStatusCode.NoContent, closeBobResponse.StatusCode);
 
         // Verify payouts: both won, so both should have more money after close
-        var aliceWalletAfter = await Client.GetFromJsonAsync<WalletDto>($"/api/wallets/{aliceWalletId}");
+        TestAuthHandler.CurrentUserId = alice;
+        var aliceWalletAfter = await Client.GetFromJsonAsync<WalletDto>($"/api/wallets/user/{alice}");
         Assert.NotNull(aliceWalletAfter);
         Assert.True(aliceWalletAfter.Balance > aliceWalletBefore.Balance,
             $"Alice balance should increase: {aliceWalletAfter.Balance} > {aliceWalletBefore.Balance}");
 
-        var bobWalletAfter = await Client.GetFromJsonAsync<WalletDto>($"/api/wallets/{bobWalletId}");
+        TestAuthHandler.CurrentUserId = bob;
+        var bobWalletAfter = await Client.GetFromJsonAsync<WalletDto>($"/api/wallets/user/{bob}");
         Assert.NotNull(bobWalletAfter);
         Assert.True(bobWalletAfter.Balance > bobWalletBefore.Balance,
             $"Bob balance should increase: {bobWalletAfter.Balance} > {bobWalletBefore.Balance}");

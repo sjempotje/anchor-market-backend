@@ -15,10 +15,12 @@ public class GetCommentsByMarketQueryHandler(IApplicationDbContext context, IMap
     : IRequestHandler<GetCommentsByMarketQuery, List<CommentDto>>
 {
     /// <summary>Returns the comments for the specified market, ordered by creation date.</summary>
-    public Task<List<CommentDto>> Handle(GetCommentsByMarketQuery request, CancellationToken cancellationToken)
-        => context.Comments
+    public async Task<List<CommentDto>> Handle(GetCommentsByMarketQuery request, CancellationToken cancellationToken)
+    {
+        var comments = await context.Comments
             .Where(c => c.MarketId == request.MarketId)
-            .OrderBy(c => c.CreatedAt)
             .ProjectTo<CommentDto>(mapper.ConfigurationProvider)
             .ToListAsync(cancellationToken);
+        return [.. comments.OrderBy(c => c.CreatedAt)];
+    }
 }

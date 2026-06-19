@@ -15,14 +15,14 @@ public class GetNotificationsByUserQueryHandler(IApplicationDbContext context, I
     : IRequestHandler<GetNotificationsByUserQuery, List<NotificationDto>>
 {
     /// <summary>Returns the user's notifications, optionally filtered to unread only.</summary>
-    public Task<List<NotificationDto>> Handle(GetNotificationsByUserQuery request, CancellationToken cancellationToken)
+    public async Task<List<NotificationDto>> Handle(GetNotificationsByUserQuery request, CancellationToken cancellationToken)
     {
         var query = context.Notifications.Where(n => n.UserId == request.UserId);
         if (request.UnreadOnly)
             query = query.Where(n => !n.IsRead);
-        return query
-            .OrderByDescending(n => n.CreatedAt)
+        var notifications = await query
             .ProjectTo<NotificationDto>(mapper.ConfigurationProvider)
             .ToListAsync(cancellationToken);
+        return [.. notifications.OrderByDescending(n => n.CreatedAt)];
     }
 }

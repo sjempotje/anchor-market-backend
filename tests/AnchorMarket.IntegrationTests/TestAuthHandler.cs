@@ -11,6 +11,7 @@ public class TestAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions
     public const string SchemeName = "TestScheme";
 
     public static Guid CurrentUserId { get; set; } = Guid.NewGuid();
+    public static bool IsAdmin { get; set; } = false;
 
     public TestAuthHandler(
         IOptionsMonitor<AuthenticationSchemeOptions> options,
@@ -22,11 +23,13 @@ public class TestAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions
 
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
-        var claims = new[]
+        var claims = new List<Claim>
         {
             new Claim(ClaimTypes.NameIdentifier, CurrentUserId.ToString()),
             new Claim(ClaimTypes.Name, "testuser")
         };
+        if (IsAdmin)
+            claims.Add(new Claim(ClaimTypes.Role, "Admin"));
 
         var identity = new ClaimsIdentity(claims, SchemeName);
         var principal = new ClaimsPrincipal(identity);
