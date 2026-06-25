@@ -33,6 +33,15 @@ public class MarketsController(ISender sender) : ControllerBase
         return market is null ? NotFound() : Ok(market);
     }
 
+    /// <summary>Retrieves the outcomes of a market.</summary>
+    /// <param name="id">The market ID.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The market's outcomes, ordered for display.</returns>
+    [HttpGet("{id:guid}/outcomes")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetOutcomes(Guid id, CancellationToken cancellationToken)
+        => Ok(await sender.Send(new GetMarketOutcomesQuery(id), cancellationToken));
+
     /// <summary>Creates a new market.</summary>
     /// <param name="command">The create command.</param>
     /// <param name="cancellationToken">Cancellation token.</param>

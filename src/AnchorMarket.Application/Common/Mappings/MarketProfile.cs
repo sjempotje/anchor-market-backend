@@ -11,5 +11,6 @@ public class MarketProfile : Profile
     public MarketProfile()
     {
         CreateMap<Market, MarketDto>();
+        CreateMap<Outcome, OutcomeDto>();
     }
 }
