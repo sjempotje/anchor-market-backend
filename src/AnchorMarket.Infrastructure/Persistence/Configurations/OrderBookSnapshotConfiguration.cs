@@ -11,7 +11,8 @@ public class OrderBookSnapshotConfiguration : IEntityTypeConfiguration<OrderBook
     /// <param name="builder">The entity type builder.</param>
     public void Configure(EntityTypeBuilder<OrderBookSnapshot> builder)
     {
-        builder.HasKey(s => s.Id);
+        // Composite key includes the partition column (Timestamp) for PostgreSQL range partitioning.
+        builder.HasKey(s => new { s.Id, s.Timestamp });
 
         builder.Property(s => s.Bids).IsRequired();
         builder.Property(s => s.Asks).IsRequired();

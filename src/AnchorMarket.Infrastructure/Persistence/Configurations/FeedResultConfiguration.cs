@@ -11,7 +11,8 @@ public class FeedResultConfiguration : IEntityTypeConfiguration<FeedResult>
     /// <param name="builder">The entity type builder.</param>
     public void Configure(EntityTypeBuilder<FeedResult> builder)
     {
-        builder.HasKey(r => r.Id);
+        // Composite key includes the partition column (ReceivedAt) for PostgreSQL range partitioning.
+        builder.HasKey(r => new { r.Id, r.ReceivedAt });
 
         builder.Property(r => r.RawJson)
             .IsRequired();
