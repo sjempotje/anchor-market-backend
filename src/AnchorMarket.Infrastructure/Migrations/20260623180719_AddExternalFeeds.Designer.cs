@@ -3,6 +3,7 @@ using System;
 using AnchorMarket.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AnchorMarket.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260623180719_AddExternalFeeds")]
+    partial class AddExternalFeeds
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -844,48 +847,6 @@ namespace AnchorMarket.Infrastructure.Migrations
                     b.ToTable("Notifications");
                 });
 
-            modelBuilder.Entity("AnchorMarket.Domain.Entities.OrderBookSnapshot", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Asks")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<decimal?>("BestAsk")
-                        .HasColumnType("numeric");
-
-                    b.Property<decimal?>("BestBid")
-                        .HasColumnType("numeric");
-
-                    b.Property<string>("Bids")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("OutcomeId")
-                        .HasColumnType("uuid");
-
-                    b.Property<decimal>("Spread")
-                        .HasColumnType("numeric");
-
-                    b.Property<DateTimeOffset>("Timestamp")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("OutcomeId", "Timestamp");
-
-                    b.ToTable("OrderBookSnapshots");
-                });
-
             modelBuilder.Entity("AnchorMarket.Domain.Entities.Outcome", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1181,54 +1142,6 @@ namespace AnchorMarket.Infrastructure.Migrations
                     b.HasIndex("OutcomeId");
 
                     b.ToTable("TradeExecutions");
-                });
-
-            modelBuilder.Entity("AnchorMarket.Domain.Entities.TradeFlowSnapshot", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<decimal>("AskDepthAtTrade")
-                        .HasColumnType("numeric");
-
-                    b.Property<decimal>("BidDepthAtTrade")
-                        .HasColumnType("numeric");
-
-                    b.Property<Guid>("BuyerOrderId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<decimal>("ExecutedPrice")
-                        .HasColumnType("numeric");
-
-                    b.Property<Guid>("MarketId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("OutcomeId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("SellerOrderId")
-                        .HasColumnType("uuid");
-
-                    b.Property<decimal>("Shares")
-                        .HasColumnType("numeric");
-
-                    b.Property<DateTimeOffset>("Timestamp")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("MarketId", "Timestamp");
-
-                    b.HasIndex("OutcomeId", "Timestamp");
-
-                    b.ToTable("TradeFlowSnapshots");
                 });
 
             modelBuilder.Entity("AnchorMarket.Domain.Entities.Transaction", b =>
@@ -1660,17 +1573,6 @@ namespace AnchorMarket.Infrastructure.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("AnchorMarket.Domain.Entities.OrderBookSnapshot", b =>
-                {
-                    b.HasOne("AnchorMarket.Domain.Entities.Outcome", "Outcome")
-                        .WithMany()
-                        .HasForeignKey("OutcomeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Outcome");
-                });
-
             modelBuilder.Entity("AnchorMarket.Domain.Entities.Outcome", b =>
                 {
                     b.HasOne("AnchorMarket.Domain.Entities.Market", "Market")
@@ -1749,17 +1651,6 @@ namespace AnchorMarket.Infrastructure.Migrations
                     b.Navigation("LimitOrder");
 
                     b.Navigation("Market");
-
-                    b.Navigation("Outcome");
-                });
-
-            modelBuilder.Entity("AnchorMarket.Domain.Entities.TradeFlowSnapshot", b =>
-                {
-                    b.HasOne("AnchorMarket.Domain.Entities.Outcome", "Outcome")
-                        .WithMany()
-                        .HasForeignKey("OutcomeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
 
                     b.Navigation("Outcome");
                 });

@@ -21,7 +21,8 @@ public record PlaceLimitOrderCommand(
 /// <summary>Handles placing a limit order.</summary>
 public class PlaceLimitOrderCommandHandler(
     IApplicationDbContext dbContext,
-    IWalletService walletService) : IRequestHandler<PlaceLimitOrderCommand, Guid>
+    IWalletService walletService,
+    IOrderBookCache orderBookCache) : IRequestHandler<PlaceLimitOrderCommand, Guid>
 {
     /// <summary>Validates the order, debits balance, and returns the order ID.</summary>
     public async Task<Guid> Handle(PlaceLimitOrderCommand request, CancellationToken cancellationToken)
@@ -88,11 +89,17 @@ public class PlaceLimitOrderCommandHandler(
             await dbContext.SaveChangesAsync(cancellationToken);
             await tx.CommitAsync(cancellationToken);
 
+            await orderBookCache.AddRestingQuantityAsync(
+                request.OutcomeId, request.Side, request.Price, request.Quantity, cancellationToken);
+
             return order.Id;
         }
 
         dbContext.LimitOrders.Add(order);
         await dbContext.SaveChangesAsync(cancellationToken);
+
+        await orderBookCache.AddRestingQuantityAsync(
+            request.OutcomeId, request.Side, request.Price, request.Quantity, cancellationToken);
 
         return order.Id;
     }

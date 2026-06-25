@@ -13,13 +13,16 @@ public class CancelLimitOrderCommandHandler : IRequestHandler<CancelLimitOrderCo
 {
     private readonly IApplicationDbContext _dbContext;
     private readonly IWalletService _walletService;
+    private readonly IOrderBookCache _orderBookCache;
 
     public CancelLimitOrderCommandHandler(
         IApplicationDbContext dbContext,
-        IWalletService walletService)
+        IWalletService walletService,
+        IOrderBookCache orderBookCache)
     {
         _dbContext = dbContext;
         _walletService = walletService;
+        _orderBookCache = orderBookCache;
     }
 
     /// <summary>Cancels the order and refunds unfilled buy portion.</summary>
@@ -37,16 +40,21 @@ public class CancelLimitOrderCommandHandler : IRequestHandler<CancelLimitOrderCo
         if (order.Status == Domain.Enums.OrderStatus.Filled)
             throw new InvalidOperationException("Cannot cancel a fully filled order.");
 
+        var unfilledQuantity = order.Quantity - order.FilledQuantity;
+
         if (order.Side == Domain.Enums.OrderSide.Buy)
         {
-            var unfilledQuantity = order.Quantity - order.FilledQuantity;
             var refundAmount = unfilledQuantity * order.Price;
-            
+
             if (refundAmount > 0)
                 await _walletService.CreditBalance(request.UserId, refundAmount);
         }
 
         order.Cancel();
         await _dbContext.SaveChangesAsync(cancellationToken);
+
+        // Remove the now-cancelled remainder from the live order book.
+        await _orderBookCache.ReduceRestingQuantityAsync(
+            order.OutcomeId, order.Side, order.Price, unfilledQuantity, cancellationToken);
     }
 }

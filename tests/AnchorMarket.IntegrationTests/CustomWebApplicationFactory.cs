@@ -22,7 +22,9 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
         {
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["ConnectionStrings:DefaultConnection"] = "DataSource=:memory:"
+                ["ConnectionStrings:DefaultConnection"] = "DataSource=:memory:",
+                // Background loops would race the shared in-memory SQLite connection.
+                ["BackgroundServices:Enabled"] = "false"
             });
         });
 

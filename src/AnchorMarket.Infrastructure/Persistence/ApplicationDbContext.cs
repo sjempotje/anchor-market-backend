@@ -56,6 +56,14 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<FavoriteMarket> FavoriteMarkets => Set<FavoriteMarket>();
     public DbSet<FavoriteTeam> FavoriteTeams => Set<FavoriteTeam>();
 
+    // <summary>External data feeds</summary>
+    public DbSet<ExternalFeedRegistration> ExternalFeedRegistrations => Set<ExternalFeedRegistration>();
+    public DbSet<FeedResult> FeedResults => Set<FeedResult>();
+
+    // <summary>Historical market data</summary>
+    public DbSet<OrderBookSnapshot> OrderBookSnapshots => Set<OrderBookSnapshot>();
+    public DbSet<TradeFlowSnapshot> TradeFlowSnapshots => Set<TradeFlowSnapshot>();
+
     public Task<IDbContextTransaction> BeginTransactionAsync(IsolationLevel isolationLevel, CancellationToken cancellationToken = default)
     {
         if (Database.ProviderName?.Contains("Sqlite") == true)

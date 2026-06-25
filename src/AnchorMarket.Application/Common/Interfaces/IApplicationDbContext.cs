@@ -76,6 +76,16 @@ public interface IApplicationDbContext
     /// <summary>Teams favorited by users.</summary>
     DbSet<FavoriteTeam> FavoriteTeams { get; }
 
+    /// <summary>Per-market external data feed configurations.</summary>
+    DbSet<ExternalFeedRegistration> ExternalFeedRegistrations { get; }
+    /// <summary>Raw results captured from external feeds.</summary>
+    DbSet<FeedResult> FeedResults { get; }
+
+    /// <summary>Historical order book snapshots.</summary>
+    DbSet<OrderBookSnapshot> OrderBookSnapshots { get; }
+    /// <summary>Trade executions enriched with order book depth.</summary>
+    DbSet<TradeFlowSnapshot> TradeFlowSnapshots { get; }
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 
     /// <summary>Exposes database operations (transactions, migrations) to application handlers.</summary>
