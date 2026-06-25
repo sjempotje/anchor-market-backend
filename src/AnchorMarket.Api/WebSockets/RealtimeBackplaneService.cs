@@ -1,0 +1,88 @@
+using System.Text.Json;
+using AnchorMarket.Application.Common.Realtime;
+using AnchorMarket.Infrastructure.Redis;
+using StackExchange.Redis;
+
+namespace AnchorMarket.Api.WebSockets;
+
+/// <summary>
+/// Bridges the Redis pub/sub backplane to connected WebSocket clients: it subscribes to the
+/// real-time channels and fans each event out to the connections subscribed to the matching topic.
+/// Only registered when Redis is configured.
+/// </summary>
+public class RealtimeBackplaneService(
+    IConnectionMultiplexer connection,
+    WebSocketConnectionManager manager,
+    ILogger<RealtimeBackplaneService> logger) : BackgroundService
+{
+    /// <inheritdoc />
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        var subscriber = connection.GetSubscriber();
+
+        await subscriber.SubscribeAsync(
+            RedisChannel.Literal(RedisKeys.Channels.PriceUpdates), (_, value) => OnPriceUpdate(value));
+        await subscriber.SubscribeAsync(
+            RedisChannel.Literal(RedisKeys.Channels.TradeExecutions), (_, value) => OnTradeExecuted(value));
+
+        logger.LogInformation("RealtimeBackplaneService subscribed to real-time channels.");
+
+        try
+        {
+            await Task.Delay(Timeout.Infinite, stoppingToken);
+        }
+        catch (OperationCanceledException) { /* shutting down */ }
+
+        await subscriber.UnsubscribeAllAsync();
+    }
+
+    private void OnPriceUpdate(RedisValue value)
+    {
+        var evt = Deserialize<PriceUpdateEvent>(value);
+        if (evt is null)
+            return;
+
+        var message = JsonSerializer.Serialize(new
+        {
+            type = "price-update",
+            outcomeId = evt.OutcomeId,
+            price = evt.Price,
+            volume = evt.Volume,
+            timestamp = evt.Timestamp
+        });
+
+        _ = manager.BroadcastAsync(RealtimeTopics.Price(evt.OutcomeId), message);
+    }
+
+    private void OnTradeExecuted(RedisValue value)
+    {
+        var evt = Deserialize<TradeExecutedEvent>(value);
+        if (evt is null)
+            return;
+
+        var message = JsonSerializer.Serialize(new
+        {
+            type = "trade-executed",
+            marketId = evt.MarketId,
+            outcomeId = evt.OutcomeId,
+            price = evt.Price,
+            shares = evt.Shares,
+            timestamp = evt.Timestamp
+        });
+
+        _ = manager.BroadcastAsync(RealtimeTopics.Trades(evt.MarketId), message);
+    }
+
+    private T? Deserialize<T>(RedisValue value)
+    {
+        try
+        {
+            return JsonSerializer.Deserialize<T>((string)value!);
+        }
+        catch (JsonException ex)
+        {
+            logger.LogWarning(ex, "Failed to deserialize a real-time event of type {Type}.", typeof(T).Name);
+            return default;
+        }
+    }
+}

@@ -3,6 +3,7 @@ using AnchorMarket.Application;
 using AnchorMarket.Infrastructure;
 using AnchorMarket.Infrastructure.Persistence;
 using AnchorMarket.Api.Middleware;
+using AnchorMarket.Api.WebSockets;
 using Scalar.AspNetCore;
 using Microsoft.OpenApi;
 
@@ -36,6 +37,12 @@ builder.Services.AddOpenApi(options =>
     options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
 });
 
+// Real-time WebSocket layer. The connection manager is always available; the Redis backplane that
+// feeds it is only registered when Redis is configured (otherwise there is nothing to broadcast).
+builder.Services.AddSingleton<WebSocketConnectionManager>();
+if (!string.IsNullOrWhiteSpace(builder.Configuration.GetConnectionString("Redis")))
+    builder.Services.AddHostedService<RealtimeBackplaneService>();
+
 var app = builder.Build();
 
 app.MapOpenApi();
@@ -59,6 +66,13 @@ if (!app.Environment.IsEnvironment("Testing"))
 
     app.UseAuthentication();
     app.UseAuthorization();
+
+app.UseWebSockets(new WebSocketOptions { KeepAliveInterval = TimeSpan.FromSeconds(15) });
+
+// Raw WebSocket endpoint for live price/trade streams. Auth runs via the standard pipeline
+// (session token accepted from the ?token= query parameter for the handshake).
+app.MapGet("/ws", (HttpContext context, WebSocketConnectionManager manager, IServiceScopeFactory scopeFactory, ILoggerFactory loggerFactory)
+    => RealtimeWebSocketEndpoint.HandleAsync(context, manager, scopeFactory, loggerFactory.CreateLogger("RealtimeWebSocket")));
 
 app.MapControllers();
 app.Run();

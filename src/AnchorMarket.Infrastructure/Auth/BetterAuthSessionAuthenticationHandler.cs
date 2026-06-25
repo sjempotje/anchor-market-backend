@@ -45,6 +45,12 @@ public class BetterAuthSessionAuthenticationHandler(
         {
             token = cookieToken;
         }
+        else if (Request.Query.TryGetValue("token", out var queryToken))
+        {
+            // WebSocket handshakes can't set the Authorization header, so the token may be
+            // supplied as a query parameter (e.g. ws://.../ws?token=<session token>).
+            token = queryToken;
+        }
 
         if (string.IsNullOrWhiteSpace(token))
             return AuthenticateResult.NoResult();
