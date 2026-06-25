@@ -24,6 +24,8 @@ public class RealtimeBackplaneService(
             RedisChannel.Literal(RedisKeys.Channels.PriceUpdates), (_, value) => OnPriceUpdate(value));
         await subscriber.SubscribeAsync(
             RedisChannel.Literal(RedisKeys.Channels.TradeExecutions), (_, value) => OnTradeExecuted(value));
+        await subscriber.SubscribeAsync(
+            RedisChannel.Literal(RedisKeys.Channels.MarketResolved), (_, value) => OnMarketResolved(value));
 
         logger.LogInformation("RealtimeBackplaneService subscribed to real-time channels.");
 
@@ -71,6 +73,25 @@ public class RealtimeBackplaneService(
         });
 
         _ = manager.BroadcastAsync(RealtimeTopics.Trades(evt.MarketId), message);
+    }
+
+    private void OnMarketResolved(RedisValue value)
+    {
+        var evt = Deserialize<MarketResolvedEvent>(value);
+        if (evt is null)
+            return;
+
+        var message = JsonSerializer.Serialize(new
+        {
+            type = "market-resolved",
+            marketId = evt.MarketId,
+            winningOutcomeId = evt.WinningOutcomeId,
+            timestamp = evt.Timestamp
+        });
+
+        _ = manager.BroadcastAsync(RealtimeTopics.Market(evt.MarketId), message);
+        if (evt.GroupId is { } groupId)
+            _ = manager.BroadcastAsync(RealtimeTopics.Group(groupId), message);
     }
 
     private T? Deserialize<T>(RedisValue value)

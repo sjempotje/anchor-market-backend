@@ -75,6 +75,7 @@ public static class DependencyInjection
         services.AddHostedService<OrderBookSnapshotService>();
         services.AddHostedService<PriceSnapshotService>();
         services.AddHostedService<VolumeStatsUpdaterService>();
+        services.AddHostedService<MarketResolutionDownsampleService>();
     }
 
     /// <summary>

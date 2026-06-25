@@ -72,6 +72,9 @@ public class Market : BaseEntity
     /// <summary>Updated by background jobs.</summary>
     public int TradesCount { get; private set; }
 
+    /// <summary>When set, the market's price history has been downsampled after resolution.</summary>
+    public DateTimeOffset? PriceHistoryDownsampledAt { get; private set; }
+
     /// <summary>Gets a citation or URL describing the resolution source.</summary>
     public string? ResolutionSource { get; private set; }
 
@@ -190,6 +193,13 @@ public class Market : BaseEntity
     public void MarkAsResolved()
     {
         Status = MarketStatus.Resolved;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    /// <summary>Marks the market's price history as having been downsampled.</summary>
+    public void MarkPriceHistoryDownsampled()
+    {
+        PriceHistoryDownsampledAt = DateTimeOffset.UtcNow;
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 }

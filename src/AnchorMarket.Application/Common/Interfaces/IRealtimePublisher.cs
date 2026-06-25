@@ -17,4 +17,9 @@ public interface IRealtimePublisher
     /// <param name="trade">The trade payload.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     Task PublishTradeAsync(TradeExecutedEvent trade, CancellationToken cancellationToken = default);
+
+    /// <summary>Publishes a market resolution.</summary>
+    /// <param name="marketResolved">The resolution payload.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    Task PublishMarketResolvedAsync(MarketResolvedEvent marketResolved, CancellationToken cancellationToken = default);
 }

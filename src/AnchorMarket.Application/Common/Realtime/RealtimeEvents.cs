@@ -23,3 +23,14 @@ public record TradeExecutedEvent(
     decimal Price,
     decimal Shares,
     DateTimeOffset Timestamp);
+
+/// <summary>Broadcast payload describing a resolved market.</summary>
+/// <param name="MarketId">The resolved market.</param>
+/// <param name="GroupId">The owning group, when the market is group-scoped.</param>
+/// <param name="WinningOutcomeId">The winning outcome.</param>
+/// <param name="Timestamp">When the market was resolved.</param>
+public record MarketResolvedEvent(
+    Guid MarketId,
+    Guid? GroupId,
+    Guid WinningOutcomeId,
+    DateTimeOffset Timestamp);

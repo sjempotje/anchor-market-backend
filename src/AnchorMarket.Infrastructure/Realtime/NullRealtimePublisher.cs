@@ -13,4 +13,8 @@ public class NullRealtimePublisher : IRealtimePublisher
     /// <inheritdoc />
     public Task PublishTradeAsync(TradeExecutedEvent trade, CancellationToken cancellationToken = default)
         => Task.CompletedTask;
+
+    /// <inheritdoc />
+    public Task PublishMarketResolvedAsync(MarketResolvedEvent marketResolved, CancellationToken cancellationToken = default)
+        => Task.CompletedTask;
 }
