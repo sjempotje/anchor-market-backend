@@ -19,10 +19,11 @@ public class GetTradeFlowsQueryHandler(IApplicationDbContext context, IMapper ma
     {
         var flows = await context.TradeFlowSnapshots
             .Where(s => s.MarketId == request.MarketId)
-            .OrderByDescending(s => s.Timestamp)
-            .Take(Math.Clamp(request.Limit, 1, 2000))
             .ProjectTo<TradeFlowDto>(mapper.ConfigurationProvider)
             .ToListAsync(cancellationToken);
-        return [.. flows.OrderBy(s => s.Timestamp)];
+        return [.. flows
+            .OrderByDescending(s => s.Timestamp)
+            .Take(Math.Clamp(request.Limit, 1, 2000))
+            .OrderBy(s => s.Timestamp)];
     }
 }

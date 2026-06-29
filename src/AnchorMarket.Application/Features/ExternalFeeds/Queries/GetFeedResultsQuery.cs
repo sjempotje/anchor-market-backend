@@ -15,11 +15,14 @@ public class GetFeedResultsQueryHandler(IApplicationDbContext context, IMapper m
     : IRequestHandler<GetFeedResultsQuery, List<FeedResultDto>>
 {
     /// <summary>Returns the most recent feed results for the registration, capped by the requested limit.</summary>
-    public Task<List<FeedResultDto>> Handle(GetFeedResultsQuery request, CancellationToken cancellationToken)
-        => context.FeedResults
+    public async Task<List<FeedResultDto>> Handle(GetFeedResultsQuery request, CancellationToken cancellationToken)
+    {
+        var results = await context.FeedResults
             .Where(r => r.FeedRegistrationId == request.FeedRegistrationId)
-            .OrderByDescending(r => r.ReceivedAt)
-            .Take(Math.Clamp(request.Limit, 1, 1000))
             .ProjectTo<FeedResultDto>(mapper.ConfigurationProvider)
             .ToListAsync(cancellationToken);
+        return [.. results
+            .OrderByDescending(r => r.ReceivedAt)
+            .Take(Math.Clamp(request.Limit, 1, 1000))];
+    }
 }

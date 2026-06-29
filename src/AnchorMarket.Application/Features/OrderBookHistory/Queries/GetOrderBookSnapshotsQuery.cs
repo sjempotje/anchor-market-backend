@@ -19,10 +19,11 @@ public class GetOrderBookSnapshotsQueryHandler(IApplicationDbContext context, IM
     {
         var snapshots = await context.OrderBookSnapshots
             .Where(s => s.OutcomeId == request.OutcomeId)
-            .OrderByDescending(s => s.Timestamp)
-            .Take(Math.Clamp(request.Limit, 1, 2000))
             .ProjectTo<OrderBookSnapshotDto>(mapper.ConfigurationProvider)
             .ToListAsync(cancellationToken);
-        return [.. snapshots.OrderBy(s => s.Timestamp)];
+        return [.. snapshots
+            .OrderByDescending(s => s.Timestamp)
+            .Take(Math.Clamp(request.Limit, 1, 2000))
+            .OrderBy(s => s.Timestamp)];
     }
 }
