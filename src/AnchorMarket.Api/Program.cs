@@ -37,6 +37,9 @@ builder.Services.AddOpenApi(options =>
     options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
 });
 
+// A failing background maintenance service (feed polling, partitioning, etc.) must never stop the API.
+builder.Services.Configure<HostOptions>(o => o.BackgroundServiceExceptionBehavior = BackgroundServiceExceptionBehavior.Ignore);
+
 // Real-time WebSocket layer. The connection manager is always available; the Redis backplane that
 // feeds it is only registered when Redis is configured (otherwise there is nothing to broadcast).
 builder.Services.AddSingleton<WebSocketConnectionManager>();
