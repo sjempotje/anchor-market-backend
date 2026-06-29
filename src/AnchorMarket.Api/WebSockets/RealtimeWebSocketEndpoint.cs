@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 using AnchorMarket.Application.Common.Interfaces;
+using AnchorMarket.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace AnchorMarket.Api.WebSockets;
@@ -46,13 +47,15 @@ public static class RealtimeWebSocketEndpoint
         finally
         {
             manager.Remove(connection.Id);
-            if (socket.State == WebSocketState.Open)
+            // Complete the close handshake whether we initiated it or are responding to the client.
+            if (socket.State is WebSocketState.Open or WebSocketState.CloseReceived)
             {
                 try
                 {
                     await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", CancellationToken.None);
                 }
                 catch (WebSocketException) { /* already gone */ }
+                catch (OperationCanceledException) { /* already gone */ }
             }
             logger.LogDebug("WebSocket {ConnectionId} disconnected.", connection.Id);
         }
@@ -108,7 +111,7 @@ public static class RealtimeWebSocketEndpoint
             return;
         }
 
-        var topic = RealtimeTopics.Resolve(request, out var requiresMembership, out var groupId);
+        var topic = RealtimeTopics.Resolve(request);
         if (topic is null)
         {
             await SendAsync(connection, new { type = "error", message = "Invalid channel or missing identifier." }, cancellationToken);
@@ -118,9 +121,9 @@ public static class RealtimeWebSocketEndpoint
         switch (action.ToLowerInvariant())
         {
             case "subscribe":
-                if (requiresMembership && !await IsGroupMemberAsync(scopeFactory, connection.UserId, groupId, cancellationToken))
+                if (!await IsAuthorizedAsync(scopeFactory, request, connection.UserId, cancellationToken))
                 {
-                    await SendAsync(connection, new { type = "error", message = "Not a member of this group." }, cancellationToken);
+                    await SendAsync(connection, new { type = "error", message = "Not authorized to subscribe to this group market." }, cancellationToken);
                     return;
                 }
                 connection.Topics[topic] = 0;
@@ -138,12 +141,46 @@ public static class RealtimeWebSocketEndpoint
         }
     }
 
-    private static async Task<bool> IsGroupMemberAsync(IServiceScopeFactory scopeFactory, Guid userId, Guid groupId, CancellationToken cancellationToken)
+    /// <summary>
+    /// Authorizes a subscription. Topics over a group-scoped market (resolved via the requested
+    /// market/outcome/group) are only allowed for members of that group; public markets are open.
+    /// </summary>
+    private static async Task<bool> IsAuthorizedAsync(
+        IServiceScopeFactory scopeFactory, SubscriptionRequest request, Guid userId, CancellationToken cancellationToken)
     {
         using var scope = scopeFactory.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<IApplicationDbContext>();
-        return await db.GroupMemberships.AnyAsync(m => m.UserId == userId && m.GroupId == groupId, cancellationToken);
+
+        // Explicit group channel: membership of the named group.
+        if (string.Equals(request.Channel, "group-market", StringComparison.OrdinalIgnoreCase))
+            return request.GroupId is { } g && await IsMemberAsync(db, userId, g, cancellationToken);
+
+        // Find the market behind the subscription (directly or via the outcome).
+        var marketId = request.MarketId;
+        if (marketId is null && request.OutcomeId is { } outcomeId)
+        {
+            marketId = await db.Outcomes
+                .Where(o => o.Id == outcomeId)
+                .Select(o => (Guid?)o.MarketId)
+                .FirstOrDefaultAsync(cancellationToken);
+        }
+
+        if (marketId is null)
+            return true; // unknown target — there is nothing private to leak
+
+        var market = await db.Markets
+            .Where(m => m.Id == marketId)
+            .Select(m => new { m.Scope, m.GroupId })
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (market is null || market.Scope != MarketScope.Group)
+            return true; // public market (or not found) — open
+
+        return market.GroupId is { } groupId && await IsMemberAsync(db, userId, groupId, cancellationToken);
     }
+
+    private static Task<bool> IsMemberAsync(IApplicationDbContext db, Guid userId, Guid groupId, CancellationToken cancellationToken)
+        => db.GroupMemberships.AnyAsync(m => m.UserId == userId && m.GroupId == groupId, cancellationToken);
 
     private static Task SendAsync(WebSocketConnection connection, object payload, CancellationToken cancellationToken)
         => connection.SendAsync(JsonSerializer.Serialize(payload), cancellationToken);

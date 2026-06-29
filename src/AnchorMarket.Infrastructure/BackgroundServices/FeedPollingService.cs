@@ -1,6 +1,8 @@
 using System.Collections.Concurrent;
 using AnchorMarket.Application.Common.Interfaces;
+using AnchorMarket.Application.Common.Realtime;
 using AnchorMarket.Domain.Entities;
+using AnchorMarket.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -10,12 +12,13 @@ namespace AnchorMarket.Infrastructure.BackgroundServices;
 
 /// <summary>
 /// Polls every active external feed on its own interval, fetching the latest value through the
-/// registered adapter and persisting the raw result. This is the durable record of feed history;
-/// PostgreSQL is the source of truth.
+/// registered adapter, persisting the raw result, and broadcasting the value live. PostgreSQL is
+/// the durable record of feed history.
 /// </summary>
 public class FeedPollingService(
     IServiceScopeFactory scopeFactory,
     IFeedAdapterFactory adapterFactory,
+    IRealtimePublisher realtimePublisher,
     ILogger<FeedPollingService> logger) : BackgroundService
 {
     /// <summary>How often the service wakes to check which feeds are due.</summary>
@@ -56,6 +59,8 @@ public class FeedPollingService(
         if (due.Count == 0)
             return;
 
+        var broadcasts = new List<FeedUpdateEvent>();
+
         foreach (var feed in due)
         {
             if (!adapterFactory.Supports(feed.AdapterType))
@@ -68,11 +73,19 @@ public class FeedPollingService(
             var adapter = adapterFactory.Resolve(feed.AdapterType);
             var result = await adapter.FetchAsync(feed, cancellationToken);
 
+            var receivedAt = DateTimeOffset.UtcNow;
             db.FeedResults.Add(FeedResult.Create(
-                feed.Id, result.RawJson, result.ParsedValue, result.Status, result.ErrorMessage, DateTimeOffset.UtcNow));
+                feed.Id, result.RawJson, result.ParsedValue, result.Status, result.ErrorMessage, receivedAt));
+
+            if (result is { Status: FeedResultStatus.Success, ParsedValue: { } value })
+                broadcasts.Add(new FeedUpdateEvent(feed.MarketId, feed.Id, value, receivedAt));
         }
 
         await db.SaveChangesAsync(cancellationToken);
+
+        // Surface the latest feed values to subscribed clients after they're persisted.
+        foreach (var update in broadcasts)
+            await realtimePublisher.PublishFeedUpdateAsync(update, cancellationToken);
     }
 
     private bool IsDue(ExternalFeedRegistration feed, DateTimeOffset now)

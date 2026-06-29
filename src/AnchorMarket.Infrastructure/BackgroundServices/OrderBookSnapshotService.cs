@@ -1,5 +1,6 @@
 using System.Text.Json;
 using AnchorMarket.Application.Common.Interfaces;
+using AnchorMarket.Application.Common.Realtime;
 using AnchorMarket.Domain.Entities;
 using AnchorMarket.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
@@ -11,11 +12,13 @@ namespace AnchorMarket.Infrastructure.BackgroundServices;
 
 /// <summary>
 /// Periodically captures the live order book of every open market's outcomes into
-/// <see cref="OrderBookSnapshot"/> rows for historical charting.
+/// <see cref="OrderBookSnapshot"/> rows for historical charting, and broadcasts the current book
+/// to subscribed clients.
 /// </summary>
 public class OrderBookSnapshotService(
     IServiceScopeFactory scopeFactory,
     IOrderBookCache orderBookCache,
+    IRealtimePublisher realtimePublisher,
     ILogger<OrderBookSnapshotService> logger) : BackgroundService
 {
     private static readonly TimeSpan CaptureInterval = TimeSpan.FromSeconds(5);
@@ -64,6 +67,9 @@ public class OrderBookSnapshotService(
                 JsonSerializer.Serialize(book.Asks),
                 book.BestBid, book.BestAsk));
             captured++;
+
+            await realtimePublisher.PublishOrderBookUpdateAsync(
+                new OrderBookUpdateEvent(outcomeId, book.Bids, book.Asks, now), cancellationToken);
         }
 
         if (captured > 0)

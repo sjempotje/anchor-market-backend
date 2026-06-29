@@ -24,6 +24,7 @@ Send a JSON text frame:
 { "action": "subscribe",   "channel": "price",        "outcomeId": "..." }
 { "action": "subscribe",   "channel": "orderbook",    "outcomeId": "..." }
 { "action": "subscribe",   "channel": "trades",       "marketId":  "..." }
+{ "action": "subscribe",   "channel": "feed",         "marketId":  "..." }
 { "action": "subscribe",   "channel": "market",       "marketId":  "..." }
 { "action": "subscribe",   "channel": "group-market", "groupId":   "..." }
 { "action": "unsubscribe", "channel": "price",        "outcomeId": "..." }
@@ -32,10 +33,14 @@ Send a JSON text frame:
 | Channel        | Identifier  | Notes |
 |----------------|-------------|-------|
 | `price`        | `outcomeId` | Latest traded price for an outcome |
-| `orderbook`    | `outcomeId` | Order book changes for an outcome |
+| `orderbook`    | `outcomeId` | Aggregated order book for an outcome |
 | `trades`       | `marketId`  | Executed trades on a market |
+| `feed`         | `marketId`  | Latest external feed value (e.g. underlying asset price) |
 | `market`       | `marketId`  | Market lifecycle (e.g. resolved) |
 | `group-market` | `groupId`   | Group-scoped events; **requires group membership** |
+
+**Group privacy:** any subscription whose market is group-scoped (resolved via the requested
+`outcomeId`/`marketId`/`groupId`) is only accepted from members of that group; public markets are open.
 
 The server acknowledges each request:
 
@@ -48,12 +53,16 @@ The server acknowledges each request:
 ## Server → Client (broadcasts)
 
 ```json
-{ "type": "price-update",   "outcomeId": "...", "price": 0.67, "volume": 50, "timestamp": "..." }
-{ "type": "trade-executed", "marketId": "...", "outcomeId": "...", "price": 0.67, "shares": 50, "timestamp": "..." }
+{ "type": "price-update",     "outcomeId": "...", "price": 0.67, "volume": 50, "timestamp": "..." }
+{ "type": "trade-executed",   "marketId": "...", "outcomeId": "...", "price": 0.67, "shares": 50, "timestamp": "..." }
+{ "type": "orderbook-update", "outcomeId": "...", "bids": [{"price":0.66,"quantity":120}], "asks": [{"price":0.68,"quantity":90}], "timestamp": "..." }
+{ "type": "feed-update",      "marketId": "...", "feedRegistrationId": "...", "value": 62345.10, "timestamp": "..." }
+{ "type": "market-resolved",  "marketId": "...", "winningOutcomeId": "...", "timestamp": "..." }
 ```
 
-`orderbook-update` and `market-resolved` channels are wired on the backplane and will emit once
-their producers land (order book snapshots / market resolution).
+Producers: `price-update`/`trade-executed` from the matching engine; `orderbook-update` from the
+order book snapshot service; `feed-update` from the feed polling service; `market-resolved` from
+market resolution.
 
 ## How it works
 

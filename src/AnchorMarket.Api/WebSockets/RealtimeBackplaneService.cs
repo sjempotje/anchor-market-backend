@@ -26,6 +26,10 @@ public class RealtimeBackplaneService(
             RedisChannel.Literal(RedisKeys.Channels.TradeExecutions), (_, value) => OnTradeExecuted(value));
         await subscriber.SubscribeAsync(
             RedisChannel.Literal(RedisKeys.Channels.MarketResolved), (_, value) => OnMarketResolved(value));
+        await subscriber.SubscribeAsync(
+            RedisChannel.Literal(RedisKeys.Channels.FeedUpdates), (_, value) => OnFeedUpdate(value));
+        await subscriber.SubscribeAsync(
+            RedisChannel.Literal(RedisKeys.Channels.OrderBookChanges), (_, value) => OnOrderBookUpdate(value));
 
         logger.LogInformation("RealtimeBackplaneService subscribed to real-time channels.");
 
@@ -92,6 +96,42 @@ public class RealtimeBackplaneService(
         _ = manager.BroadcastAsync(RealtimeTopics.Market(evt.MarketId), message);
         if (evt.GroupId is { } groupId)
             _ = manager.BroadcastAsync(RealtimeTopics.Group(groupId), message);
+    }
+
+    private void OnFeedUpdate(RedisValue value)
+    {
+        var evt = Deserialize<FeedUpdateEvent>(value);
+        if (evt is null)
+            return;
+
+        var message = JsonSerializer.Serialize(new
+        {
+            type = "feed-update",
+            marketId = evt.MarketId,
+            feedRegistrationId = evt.FeedRegistrationId,
+            value = evt.Value,
+            timestamp = evt.Timestamp
+        });
+
+        _ = manager.BroadcastAsync(RealtimeTopics.Feed(evt.MarketId), message);
+    }
+
+    private void OnOrderBookUpdate(RedisValue value)
+    {
+        var evt = Deserialize<OrderBookUpdateEvent>(value);
+        if (evt is null)
+            return;
+
+        var message = JsonSerializer.Serialize(new
+        {
+            type = "orderbook-update",
+            outcomeId = evt.OutcomeId,
+            bids = evt.Bids,
+            asks = evt.Asks,
+            timestamp = evt.Timestamp
+        });
+
+        _ = manager.BroadcastAsync(RealtimeTopics.OrderBook(evt.OutcomeId), message);
     }
 
     private T? Deserialize<T>(RedisValue value)

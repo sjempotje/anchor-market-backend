@@ -28,33 +28,23 @@ public static class RealtimeTopics
     /// <summary>The topic carrying lifecycle events for a market.</summary>
     public static string Market(Guid marketId) => $"market:{marketId}";
 
+    /// <summary>The topic carrying external feed value updates for a market.</summary>
+    public static string Feed(Guid marketId) => $"feed:{marketId}";
+
     /// <summary>The topic carrying events scoped to a group.</summary>
     public static string Group(Guid groupId) => $"group:{groupId}";
 
     /// <summary>Resolves the topic key a subscription request refers to, or null if invalid.</summary>
     /// <param name="request">The client request.</param>
-    /// <param name="requiresGroupMembership">Set when the topic requires the user to be a group member.</param>
-    /// <param name="groupId">The group whose membership must be checked, when applicable.</param>
-    public static string? Resolve(SubscriptionRequest request, out bool requiresGroupMembership, out Guid groupId)
-    {
-        requiresGroupMembership = false;
-        groupId = Guid.Empty;
-
-        return request.Channel?.ToLowerInvariant() switch
+    public static string? Resolve(SubscriptionRequest request)
+        => request.Channel?.ToLowerInvariant() switch
         {
             "price" when request.OutcomeId is { } o => Price(o),
             "orderbook" when request.OutcomeId is { } o => OrderBook(o),
             "trades" when request.MarketId is { } m => Trades(m),
             "market" when request.MarketId is { } m => Market(m),
-            "group-market" when request.GroupId is { } g => SetGroup(g, out requiresGroupMembership, out groupId),
+            "feed" when request.MarketId is { } m => Feed(m),
+            "group-market" when request.GroupId is { } g => Group(g),
             _ => null
         };
-    }
-
-    private static string SetGroup(Guid g, out bool requiresMembership, out Guid groupId)
-    {
-        requiresMembership = true;
-        groupId = g;
-        return Group(g);
-    }
 }

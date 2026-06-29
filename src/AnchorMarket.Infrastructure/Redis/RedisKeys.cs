@@ -40,5 +40,7 @@ public static class RedisKeys
         public const string OrderBookChanges = "ws:orderbook-changes";
         /// <summary>Market resolution events.</summary>
         public const string MarketResolved = "ws:market-resolved";
+        /// <summary>Latest external feed values.</summary>
+        public const string FeedUpdates = "ws:feed-updates";
     }
 }

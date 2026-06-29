@@ -27,6 +27,14 @@ public class RedisRealtimePublisher(IConnectionMultiplexer connection, ILogger<R
     public Task PublishMarketResolvedAsync(MarketResolvedEvent marketResolved, CancellationToken cancellationToken = default)
         => PublishAsync(RedisKeys.Channels.MarketResolved, marketResolved);
 
+    /// <inheritdoc />
+    public Task PublishFeedUpdateAsync(FeedUpdateEvent feedUpdate, CancellationToken cancellationToken = default)
+        => PublishAsync(RedisKeys.Channels.FeedUpdates, feedUpdate);
+
+    /// <inheritdoc />
+    public Task PublishOrderBookUpdateAsync(OrderBookUpdateEvent orderBookUpdate, CancellationToken cancellationToken = default)
+        => PublishAsync(RedisKeys.Channels.OrderBookChanges, orderBookUpdate);
+
     private async Task PublishAsync<TEvent>(string channel, TEvent payload)
     {
         try

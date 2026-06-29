@@ -59,12 +59,15 @@ public class MarketResolutionDownsampleService(
         if (market is null)
             return;
 
-        var granularity = await db.ExternalFeedRegistrations
+        var feed = await db.ExternalFeedRegistrations
             .Where(f => f.MarketId == marketId)
-            .Select(f => (int?)f.ResolutionGranularitySeconds)
-            .FirstOrDefaultAsync(cancellationToken) ?? DefaultGranularitySeconds;
+            .Select(f => new { f.ResolutionGranularitySeconds, f.Config })
+            .FirstOrDefaultAsync(cancellationToken);
+
+        var granularity = feed?.ResolutionGranularitySeconds ?? DefaultGranularitySeconds;
         if (granularity < 1)
             granularity = DefaultGranularitySeconds;
+        var strategy = DownsampleStrategy.FromConfig(feed?.Config);
 
         var outcomeIds = await db.Outcomes
             .Where(o => o.MarketId == marketId)
@@ -83,12 +86,16 @@ public class MarketResolutionDownsampleService(
 
             var aggregated = points
                 .GroupBy(p => BucketStart(p.Timestamp, granularity))
-                .Select(g => PriceHistory.Create(
-                    outcomeId,
-                    g.Key,
-                    g.First().Price,        // first price in the bucket
-                    g.Max(p => p.Volume),   // peak volume
-                    g.Last().Liquidity))    // last liquidity
+                .Select(g =>
+                {
+                    var bucket = g.ToList();
+                    return PriceHistory.Create(
+                        outcomeId,
+                        g.Key,
+                        Aggregate(strategy.PriceField, bucket, p => p.Price),
+                        Aggregate(strategy.VolumeField, bucket, p => p.Volume),
+                        Aggregate(strategy.LiquidityField, bucket, p => p.Liquidity));
+                })
                 .ToList();
 
             // Only rewrite when downsampling actually reduces the row count.
@@ -109,5 +116,56 @@ public class MarketResolutionDownsampleService(
         var seconds = timestamp.ToUnixTimeSeconds();
         var bucket = seconds - (seconds % granularitySeconds);
         return DateTimeOffset.FromUnixTimeSeconds(bucket);
+    }
+
+    /// <summary>Aggregates one field across a time bucket according to the configured strategy.</summary>
+    private static decimal Aggregate(string field, List<Domain.Entities.PriceHistory> bucket, Func<Domain.Entities.PriceHistory, decimal> selector)
+        => field switch
+        {
+            "last" => selector(bucket[^1]),
+            "min" => bucket.Min(selector),
+            "max" => bucket.Max(selector),
+            "avg" => bucket.Average(selector),
+            _ => selector(bucket[0]) // "first"
+        };
+
+    /// <summary>Per-field downsampling strategy, optionally supplied in the feed's Config JSON.</summary>
+    private sealed record DownsampleStrategy(string PriceField, string VolumeField, string LiquidityField)
+    {
+        private static readonly string[] Allowed = ["first", "last", "min", "max", "avg"];
+        private static readonly DownsampleStrategy Default = new("first", "max", "last");
+
+        public static DownsampleStrategy FromConfig(string? config)
+        {
+            if (string.IsNullOrWhiteSpace(config))
+                return Default;
+
+            try
+            {
+                using var doc = System.Text.Json.JsonDocument.Parse(config);
+                if (!doc.RootElement.TryGetProperty("DownsampleStrategy", out var s) || s.ValueKind != System.Text.Json.JsonValueKind.Object)
+                    return Default;
+
+                return new DownsampleStrategy(
+                    Field(s, "PriceField", Default.PriceField),
+                    Field(s, "VolumeField", Default.VolumeField),
+                    Field(s, "LiquidityField", Default.LiquidityField));
+            }
+            catch (System.Text.Json.JsonException)
+            {
+                return Default;
+            }
+        }
+
+        private static string Field(System.Text.Json.JsonElement strategy, string name, string fallback)
+        {
+            if (strategy.TryGetProperty(name, out var v) && v.ValueKind == System.Text.Json.JsonValueKind.String)
+            {
+                var value = v.GetString()?.ToLowerInvariant();
+                if (value is not null && Allowed.Contains(value))
+                    return value;
+            }
+            return fallback;
+        }
     }
 }

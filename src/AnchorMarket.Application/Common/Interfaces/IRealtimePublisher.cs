@@ -22,4 +22,14 @@ public interface IRealtimePublisher
     /// <param name="marketResolved">The resolution payload.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     Task PublishMarketResolvedAsync(MarketResolvedEvent marketResolved, CancellationToken cancellationToken = default);
+
+    /// <summary>Publishes the latest external feed value for a market.</summary>
+    /// <param name="feedUpdate">The feed update payload.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    Task PublishFeedUpdateAsync(FeedUpdateEvent feedUpdate, CancellationToken cancellationToken = default);
+
+    /// <summary>Publishes the current order book for an outcome.</summary>
+    /// <param name="orderBookUpdate">The order book payload.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    Task PublishOrderBookUpdateAsync(OrderBookUpdateEvent orderBookUpdate, CancellationToken cancellationToken = default);
 }

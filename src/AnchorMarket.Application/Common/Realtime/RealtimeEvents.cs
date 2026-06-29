@@ -1,3 +1,5 @@
+using AnchorMarket.Application.Common.Interfaces;
+
 namespace AnchorMarket.Application.Common.Realtime;
 
 /// <summary>Broadcast payload describing the latest traded price for an outcome.</summary>
@@ -22,6 +24,28 @@ public record TradeExecutedEvent(
     Guid OutcomeId,
     decimal Price,
     decimal Shares,
+    DateTimeOffset Timestamp);
+
+/// <summary>Broadcast payload describing the latest value read from a market's external feed.</summary>
+/// <param name="MarketId">The market the feed supplies.</param>
+/// <param name="FeedRegistrationId">The feed registration that produced the value.</param>
+/// <param name="Value">The latest parsed feed value (e.g. the underlying asset price).</param>
+/// <param name="Timestamp">When the value was read.</param>
+public record FeedUpdateEvent(
+    Guid MarketId,
+    Guid FeedRegistrationId,
+    decimal Value,
+    DateTimeOffset Timestamp);
+
+/// <summary>Broadcast payload describing the current aggregated order book for an outcome.</summary>
+/// <param name="OutcomeId">The outcome the book belongs to.</param>
+/// <param name="Bids">Bid levels, best (highest) first.</param>
+/// <param name="Asks">Ask levels, best (lowest) first.</param>
+/// <param name="Timestamp">When the book was captured.</param>
+public record OrderBookUpdateEvent(
+    Guid OutcomeId,
+    IReadOnlyList<OrderBookLevel> Bids,
+    IReadOnlyList<OrderBookLevel> Asks,
     DateTimeOffset Timestamp);
 
 /// <summary>Broadcast payload describing a resolved market.</summary>

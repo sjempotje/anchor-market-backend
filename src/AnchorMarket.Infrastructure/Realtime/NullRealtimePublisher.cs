@@ -17,4 +17,12 @@ public class NullRealtimePublisher : IRealtimePublisher
     /// <inheritdoc />
     public Task PublishMarketResolvedAsync(MarketResolvedEvent marketResolved, CancellationToken cancellationToken = default)
         => Task.CompletedTask;
+
+    /// <inheritdoc />
+    public Task PublishFeedUpdateAsync(FeedUpdateEvent feedUpdate, CancellationToken cancellationToken = default)
+        => Task.CompletedTask;
+
+    /// <inheritdoc />
+    public Task PublishOrderBookUpdateAsync(OrderBookUpdateEvent orderBookUpdate, CancellationToken cancellationToken = default)
+        => Task.CompletedTask;
 }
