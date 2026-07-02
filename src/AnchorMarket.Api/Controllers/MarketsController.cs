@@ -21,7 +21,7 @@ public class MarketsController(ISender sender) : ControllerBase
     /// <returns>A list of markets.</returns>
     [HttpGet]
     [AllowAnonymous]
-    public async Task<IActionResult> GetAll(CancellationToken cancellationToken, [FromQuery] bool activeOnly = true)
+    public async Task<IActionResult> GetAll([FromQuery] bool activeOnly = true, CancellationToken cancellationToken = default)
         => Ok(await sender.Send(new GetMarketsQuery(activeOnly), cancellationToken));
 
     /// <summary>Retrieves a market by its ID.</summary>

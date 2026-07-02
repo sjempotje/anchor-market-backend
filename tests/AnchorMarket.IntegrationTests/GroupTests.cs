@@ -81,4 +81,107 @@ public class GroupTests(CustomWebApplicationFactory factory) : TestBase(factory)
         var getResponse = await Client.GetAsync($"/api/groups/{groupId}");
         Assert.Equal(HttpStatusCode.NotFound, getResponse.StatusCode);
     }
+
+    [Fact]
+    public async Task CreatePrivateGroup_HasJoinCode()
+    {
+        var suffix = Guid.NewGuid().ToString("N")[..8];
+        var userId = await RegisterUser($"privgrp_{suffix}", $"privgrp_{suffix}@example.com");
+
+        var response = await Client.PostAsJsonAsync("/api/groups", new
+        {
+            name = $"Private Group {suffix}",
+            description = "A private group",
+            ownerId = userId,
+            isPrivate = true
+        });
+        response.EnsureSuccessStatusCode();
+
+        var groupId = Guid.Parse(response.Headers.Location!.Segments[^1]);
+        var getResponse = await Client.GetAsync($"/api/groups/{groupId}");
+        var group = await getResponse.Content.ReadFromJsonAsync<GroupDto>();
+
+        Assert.NotNull(group);
+        Assert.True(group!.IsPrivate);
+        Assert.NotNull(group.JoinCode);
+        Assert.NotEmpty(group.JoinCode);
+    }
+
+    [Fact]
+    public async Task JoinPrivateGroup_WithValidCode_Succeeds()
+    {
+        var suffix = Guid.NewGuid().ToString("N")[..8];
+        var ownerId = await RegisterUser($"privown_{suffix}", $"privown_{suffix}@example.com");
+
+        // Create private group
+        var groupResponse = await Client.PostAsJsonAsync("/api/groups", new
+        {
+            name = $"Private {suffix}",
+            description = "A private group",
+            ownerId,
+            isPrivate = true
+        });
+        var groupId = Guid.Parse(groupResponse.Headers.Location!.Segments[^1]);
+
+        // Get the group to get the join code
+        var getGroupResponse = await Client.GetAsync($"/api/groups/{groupId}");
+        var groupDto = await getGroupResponse.Content.ReadFromJsonAsync<GroupDto>();
+        var joinCode = groupDto!.JoinCode;
+
+        // Join with correct code
+        var userId = await RegisterUser($"joiner_{suffix}", $"joiner_{suffix}@example.com");
+        await JoinGroup(groupId, userId, joinCode);
+
+        // Verify membership
+        var response = await Client.GetAsync($"/api/group-markets?groupId={groupId}&requestingUserId={userId}");
+        response.EnsureSuccessStatusCode();
+    }
+
+    [Fact]
+    public async Task JoinPrivateGroup_WithInvalidCode_Fails()
+    {
+        var suffix = Guid.NewGuid().ToString("N")[..8];
+        var ownerId = await RegisterUser($"privfail_{suffix}", $"privfail_{suffix}@example.com");
+
+        var groupResponse = await Client.PostAsJsonAsync("/api/groups", new
+        {
+            name = $"Private {suffix}",
+            description = "A private group",
+            ownerId,
+            isPrivate = true
+        });
+        var groupId = Guid.Parse(groupResponse.Headers.Location!.Segments[^1]);
+
+        var userId = await RegisterUser($"joinfail_{suffix}", $"joinfail_{suffix}@example.com");
+        TestAuthHandler.CurrentUserId = userId;
+
+        var joinResponse = await Client.PostAsJsonAsync($"/api/groups/{groupId}/join", new
+        {
+            joinCode = "WRONGCODE"
+        });
+        Assert.Equal(HttpStatusCode.BadRequest, joinResponse.StatusCode);
+    }
+
+    [Fact]
+    public async Task JoinPublicGroup_WithoutCode_Succeeds()
+    {
+        var suffix = Guid.NewGuid().ToString("N")[..8];
+        var ownerId = await RegisterUser($"pubown_{suffix}", $"pubown_{suffix}@example.com");
+
+        var groupResponse = await Client.PostAsJsonAsync("/api/groups", new
+        {
+            name = $"Public {suffix}",
+            description = "A public group",
+            ownerId,
+            isPrivate = false
+        });
+        var groupId = Guid.Parse(groupResponse.Headers.Location!.Segments[^1]);
+
+        var userId = await RegisterUser($"pubjoiner_{suffix}", $"pubjoiner_{suffix}@example.com");
+        await JoinGroup(groupId, userId);
+
+        // Verify membership
+        var response = await Client.GetAsync($"/api/group-markets?groupId={groupId}&requestingUserId={userId}");
+        response.EnsureSuccessStatusCode();
+    }
 }

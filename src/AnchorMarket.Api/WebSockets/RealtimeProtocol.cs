@@ -1,3 +1,5 @@
+using System;
+
 namespace AnchorMarket.Api.WebSockets;
 
 /// <summary>A subscribe/unsubscribe message sent by a client.</summary>

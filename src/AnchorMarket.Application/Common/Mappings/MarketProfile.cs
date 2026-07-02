@@ -28,15 +28,21 @@ public class MarketProfile : Profile
                 src.Slug,
                 src.Featured,
                 src.TrendingScore,
-                0m, // Volume24h
-                0m, // Volume7d
-                src.TotalBetAmount, // VolumeAllTime
-                0m, // OpenInterest
-                0m, // Liquidity
-                src.BetCount, // TradesCount
+                src.TotalBetAmount,
+                src.BetCount,
                 src.ResolutionSource,
                 src.CreatedAt));
 
-        CreateMap<Outcome, OutcomeDto>();
+        CreateMap<Outcome, OutcomeDto>()
+            .ConstructUsing(src => new OutcomeDto(
+                src.Id,
+                src.MarketId,
+                src.Title,
+                src.ShortName,
+                src.ImageUrl,
+                src.Color,
+                src.CountryCode,
+                src.SortOrder,
+                src.TotalBetAmount));
     }
 }

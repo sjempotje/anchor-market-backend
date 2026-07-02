@@ -25,7 +25,11 @@ public class MarketTests(CustomWebApplicationFactory factory) : TestBase(factory
         await CreateMarket($"Mkt A {suffix}", "Desc", userId, ["Yes", "No"]);
 
         var response = await Client.GetAsync("/api/markets");
-        response.EnsureSuccessStatusCode();
+        if (!response.IsSuccessStatusCode)
+        {
+            var content = await response.Content.ReadAsStringAsync();
+            throw new Exception($"Status: {response.StatusCode}, Content: {content}");
+        }
 
         var markets = await response.Content.ReadFromJsonAsync<List<MarketDto>>();
         Assert.NotNull(markets);
@@ -231,5 +235,49 @@ public class MarketTests(CustomWebApplicationFactory factory) : TestBase(factory
             requestingUserId = otherUserId
         });
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetPublicMarkets_DoesNotIncludeGroupMarkets()
+    {
+        var suffix = Guid.NewGuid().ToString("N")[..8];
+        var userId = await RegisterUser($"mktpub_{suffix}", $"mktpub_{suffix}@example.com");
+
+        // Create public market
+        var publicMarketId = await CreateMarket($"Public {suffix}", "Public market", userId, ["Yes", "No"]);
+
+        // Create group and group market
+        var groupId = await CreateGroup($"Group {suffix}", null, userId);
+        await AddGroupMembership(userId, groupId);
+        var groupMarketId = await CreateGroupMarket(groupId, userId, $"GroupMkt {suffix}", "Group market", ["Yes", "No"]);
+
+        // Fetch public markets
+        var response = await Client.GetAsync("/api/markets");
+        response.EnsureSuccessStatusCode();
+        var markets = await response.Content.ReadFromJsonAsync<List<MarketDto>>();
+
+        // Public market should be there, group market should NOT
+        Assert.Contains(markets!, m => m.Id == publicMarketId);
+        Assert.DoesNotContain(markets!, m => m.Id == groupMarketId);
+    }
+
+    [Fact]
+    public async Task GroupMarkets_IsolatedFromPublicAPI()
+    {
+        var suffix = Guid.NewGuid().ToString("N")[..8];
+        var ownerId = await RegisterUser($"isolated_{suffix}", $"isolated_{suffix}@example.com");
+        var groupId = await CreateGroup($"Isolated {suffix}", null, ownerId);
+        await AddGroupMembership(ownerId, groupId);
+        await CreateGroupMarket(groupId, ownerId, $"Isolated Mkt {suffix}", "Desc", ["Yes", "No"]);
+
+        // Another user tries to get public markets - should not see group market
+        var otherUserId = await RegisterUser($"isolated2_{suffix}", $"isolated2_{suffix}@example.com");
+        TestAuthHandler.CurrentUserId = otherUserId;
+
+        var response = await Client.GetAsync("/api/markets");
+        response.EnsureSuccessStatusCode();
+        var markets = await response.Content.ReadFromJsonAsync<List<MarketDto>>();
+
+        Assert.DoesNotContain(markets!, m => m.Title.Contains(suffix));
     }
 }

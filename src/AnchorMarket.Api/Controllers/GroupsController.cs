@@ -75,13 +75,14 @@ public class GroupsController(ISender sender) : ControllerBase
 
     /// <summary>Joins a group as the authenticated user.</summary>
     /// <param name="id">The group ID.</param>
+    /// <param name="request">Join request with optional join code.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>204 No Content.</returns>
     [HttpPost("{id:guid}/join")]
-    public async Task<IActionResult> Join(Guid id, CancellationToken cancellationToken)
+    public async Task<IActionResult> Join(Guid id, [FromBody] JoinGroupRequest request, CancellationToken cancellationToken)
     {
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        await sender.Send(new JoinGroupCommand(id, userId), cancellationToken);
+        await sender.Send(new JoinGroupCommand(id, userId, request.JoinCode), cancellationToken);
         return NoContent();
     }
 
@@ -97,3 +98,6 @@ public class GroupsController(ISender sender) : ControllerBase
         return NoContent();
     }
 }
+
+/// <summary>Request model for joining a group.</summary>
+public record JoinGroupRequest(string? JoinCode = null);

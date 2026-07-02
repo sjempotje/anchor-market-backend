@@ -10,5 +10,4 @@ public record OutcomeDto(
     string? Color,
     string? CountryCode,
     int SortOrder,
-    decimal Volume,
-    decimal OpenInterest);
+    decimal TotalBetAmount);

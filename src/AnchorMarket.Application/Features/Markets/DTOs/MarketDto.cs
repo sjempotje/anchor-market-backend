@@ -20,11 +20,7 @@ public record MarketDto(
     string? Slug,
     bool Featured,
     decimal TrendingScore,
-    decimal Volume24h,
-    decimal Volume7d,
-    decimal VolumeAllTime,
-    decimal OpenInterest,
-    decimal Liquidity,
-    int TradesCount,
+    decimal TotalBetAmount,
+    int BetCount,
     string? ResolutionSource,
     DateTimeOffset CreatedAt);

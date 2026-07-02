@@ -44,9 +44,9 @@ public abstract class TestBase : IClassFixture<CustomWebApplicationFactory>, IAs
         return user.Id;
     }
 
-    protected async Task<Guid> CreateGroup(string name, string? description, Guid ownerId)
+    protected async Task<Guid> CreateGroup(string name, string? description, Guid ownerId, bool isPrivate = false)
     {
-        var response = await Client.PostAsJsonAsync("/api/groups", new { name, description, ownerId });
+        var response = await Client.PostAsJsonAsync("/api/groups", new { name, description, ownerId, isPrivate });
         response.EnsureSuccessStatusCode();
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         var location = response.Headers.Location!;
@@ -88,21 +88,14 @@ public abstract class TestBase : IClassFixture<CustomWebApplicationFactory>, IAs
         return Guid.Parse(location.Segments[^1]);
     }
 
-    protected async Task<Guid> PlaceLimitOrder(Guid userId, Guid marketId, Guid outcomeId, int side = 0, decimal price = 0.55m, decimal quantity = 100.0m)
+    protected async Task JoinGroup(Guid groupId, Guid userId, string? joinCode = null)
     {
         TestAuthHandler.CurrentUserId = userId;
-        var response = await Client.PostAsJsonAsync("/api/limitorders", new
+        var response = await Client.PostAsJsonAsync($"/api/groups/{groupId}/join", new
         {
-            marketId,
-            outcomeId,
-            side,
-            price,
-            quantity,
-            expiresAt = (DateTimeOffset?)DateTimeOffset.UtcNow.AddDays(7)
+            joinCode
         });
         response.EnsureSuccessStatusCode();
-        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        return Guid.Parse(response.Headers.Location!.Segments[^1]);
     }
 
     protected async Task<Guid> GetOutcomeId(Guid marketId)
