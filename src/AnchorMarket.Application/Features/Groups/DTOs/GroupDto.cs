@@ -6,4 +6,6 @@ public record GroupDto(
     string Name,
     string? Description,
     Guid OwnerId,
+    bool IsPrivate,
+    string? JoinCode,
     DateTimeOffset CreatedAt);

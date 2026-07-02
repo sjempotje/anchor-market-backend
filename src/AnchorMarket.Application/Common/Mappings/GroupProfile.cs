@@ -10,6 +10,14 @@ public class GroupProfile : Profile
     /// <summary>Configures entity-to-DTO mappings.</summary>
     public GroupProfile()
     {
-        CreateMap<Group, GroupDto>();
+        CreateMap<Group, GroupDto>()
+            .ConstructUsing(src => new GroupDto(
+                src.Id,
+                src.Name,
+                src.Description,
+                src.OwnerId,
+                src.IsPrivate,
+                src.JoinCode,
+                src.CreatedAt));
     }
 }

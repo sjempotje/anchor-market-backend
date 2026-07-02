@@ -16,7 +16,8 @@ public class GetMarketsQueryHandler(IApplicationDbContext context, IMapper mappe
 {
     public Task<List<MarketDto>> Handle(GetMarketsQuery request, CancellationToken cancellationToken)
     {
-        var query = context.Set<AnchorMarket.Domain.Entities.Market>().AsQueryable();
+        var query = context.Set<AnchorMarket.Domain.Entities.Market>()
+            .Where(m => m.Scope == MarketScope.Public);
 
         if (request.ActiveOnly)
         {
