@@ -30,9 +30,6 @@ public class User : BaseEntity
 
     public ICollection<Session> Sessions { get; private set; } = new List<Session>();
     public ICollection<Account> Accounts { get; private set; } = new List<Account>();
-    public ICollection<Notification> Notifications { get; private set; } = new List<Notification>();
-    public ICollection<FavoriteMarket> FavoriteMarkets { get; private set; } = new List<FavoriteMarket>();
-    public ICollection<FavoriteTeam> FavoriteTeams { get; private set; } = new List<FavoriteTeam>();
 
     /// <summary>Static factory method to create a new user with validation.</summary>
     public static User Create(string username, string email)

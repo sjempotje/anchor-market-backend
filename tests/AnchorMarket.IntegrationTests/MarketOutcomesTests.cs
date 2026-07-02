@@ -12,7 +12,7 @@ public class MarketOutcomesTests(CustomWebApplicationFactory factory) : TestBase
     {
         var suffix = Guid.NewGuid().ToString("N")[..8];
         var creator = await RegisterUser($"out_{suffix}", $"out_{suffix}@x.com");
-        var marketId = await CreateMarket($"BTC Up/Down {suffix}", "Up or down?", creator, ["UP", "DOWN"]);
+        var marketId = await CreateMarket($"Price Movement {suffix}", "Up or down?", creator, ["UP", "DOWN"]);
 
         var response = await Client.GetAsync($"/api/markets/{marketId}/outcomes");
         response.EnsureSuccessStatusCode();

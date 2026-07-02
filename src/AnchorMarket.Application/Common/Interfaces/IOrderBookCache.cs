@@ -44,4 +44,15 @@ public interface IOrderBookCache
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The latest price, or null when none has been recorded.</returns>
     Task<LatestPrice?> GetLatestPriceAsync(Guid outcomeId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Replaces the entire order book for an outcome with the provided bid/ask snapshots.
+    /// Called by the reconciliation service to heal cache drift after a Redis outage or
+    /// missed incremental update.
+    /// </summary>
+    /// <param name="outcomeId">The outcome to rebuild.</param>
+    /// <param name="bids">Current bid levels, sorted best-first.</param>
+    /// <param name="asks">Current ask levels, sorted best-first.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    Task RebuildAsync(Guid outcomeId, IReadOnlyList<OrderBookLevel> bids, IReadOnlyList<OrderBookLevel> asks, CancellationToken cancellationToken = default);
 }

@@ -24,45 +24,14 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<Transaction> Transactions => Set<Transaction>();
     public DbSet<MarketResolution> MarketResolutions => Set<MarketResolution>();
 
-    /// <summary>Limit orders placed by users for trading shares.</summary>
-    public DbSet<LimitOrder> LimitOrders => Set<LimitOrder>();
-
-    /// <summary>Trade executions resulting from order matching.</summary>
-    public DbSet<TradeExecution> TradeExecutions => Set<TradeExecution>();
-
     public DbSet<Session> Sessions => Set<Session>();
     public DbSet<Account> Accounts => Set<Account>();
     public DbSet<Verification> Verifications => Set<Verification>();
 
     // <summary>Taxonomy & discovery</summary>
     public DbSet<Category> Categories => Set<Category>();
-    public DbSet<Event> Events => Set<Event>();
 
-    // <summary>Sports hierarchy</summary>
-    public DbSet<Sport> Sports => Set<Sport>();
-    public DbSet<League> Leagues => Set<League>();
-    public DbSet<Team> Teams => Set<Team>();
-    public DbSet<Match> Matches => Set<Match>();
-    public DbSet<MatchState> MatchStates => Set<MatchState>();
-    public DbSet<MatchStream> MatchStreams => Set<MatchStream>();
-
-    // <summary>Market enrichment</summary>
-    public DbSet<PriceHistory> PriceHistory => Set<PriceHistory>();
     public DbSet<MarketTemplate> MarketTemplates => Set<MarketTemplate>();
-
-    // <summary>Social & notifications</summary>
-    public DbSet<Comment> Comments => Set<Comment>();
-    public DbSet<Notification> Notifications => Set<Notification>();
-    public DbSet<FavoriteMarket> FavoriteMarkets => Set<FavoriteMarket>();
-    public DbSet<FavoriteTeam> FavoriteTeams => Set<FavoriteTeam>();
-
-    // <summary>External data feeds</summary>
-    public DbSet<ExternalFeedRegistration> ExternalFeedRegistrations => Set<ExternalFeedRegistration>();
-    public DbSet<FeedResult> FeedResults => Set<FeedResult>();
-
-    // <summary>Historical market data</summary>
-    public DbSet<OrderBookSnapshot> OrderBookSnapshots => Set<OrderBookSnapshot>();
-    public DbSet<TradeFlowSnapshot> TradeFlowSnapshots => Set<TradeFlowSnapshot>();
 
     public Task<IDbContextTransaction> BeginTransactionAsync(IsolationLevel isolationLevel, CancellationToken cancellationToken = default)
     {

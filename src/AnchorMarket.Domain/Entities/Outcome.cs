@@ -10,14 +10,11 @@ public class Outcome : BaseEntity
     public string? CountryCode { get; private set; }
     public int SortOrder { get; private set; }
 
-    /// <summary>Updated by background jobs.</summary>
-    public decimal Volume { get; private set; }
-    /// <summary>Updated by background jobs.</summary>
-    public decimal OpenInterest { get; private set; }
+    /// <summary>Total amount bet on this outcome.</summary>
+    public decimal TotalBetAmount { get; private set; }
 
     public Market Market { get; private set; } = null!;
     public ICollection<Position> Positions { get; private set; } = new List<Position>();
-    public ICollection<PriceHistory> PriceHistory { get; private set; } = new List<PriceHistory>();
 
     public static Outcome Create(string title, string? shortName = null, string? imageUrl = null,
         string? color = null, string? countryCode = null, int sortOrder = 0)
@@ -33,10 +30,10 @@ public class Outcome : BaseEntity
         };
     }
 
-    public void UpdateStats(decimal volume, decimal openInterest)
+    /// <summary>Updates total bet amount for this outcome.</summary>
+    public void UpdateStats(decimal totalBetAmount)
     {
-        Volume = volume;
-        OpenInterest = openInterest;
+        TotalBetAmount = totalBetAmount;
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 }

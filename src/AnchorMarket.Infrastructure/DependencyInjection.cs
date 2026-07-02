@@ -1,15 +1,12 @@
 using AnchorMarket.Application.Common.Interfaces;
-using AnchorMarket.Infrastructure.Adapters;
 using AnchorMarket.Infrastructure.Auth;
 using AnchorMarket.Infrastructure.BackgroundServices;
 using AnchorMarket.Infrastructure.Persistence;
 using AnchorMarket.Infrastructure.Realtime;
-using AnchorMarket.Infrastructure.Redis;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using StackExchange.Redis;
 
 namespace AnchorMarket.Infrastructure;
 
@@ -48,7 +45,6 @@ public static class DependencyInjection
 
         services.AddAuthorization();
 
-        AddExternalFeeds(services);
         AddRealtime(services, configuration);
         AddBackgroundServices(services, configuration);
 
@@ -70,51 +66,18 @@ public static class DependencyInjection
         if (!enabled || !hasDatabase)
             return;
 
-        services.AddHostedService<FeedPollingService>();
-        services.AddHostedService<ExpiredOrderCleanupService>();
-        services.AddHostedService<OrderBookSnapshotService>();
-        services.AddHostedService<PriceSnapshotService>();
         services.AddHostedService<VolumeStatsUpdaterService>();
-        services.AddHostedService<MarketResolutionDownsampleService>();
         services.AddHostedService<PartitionManagerService>();
     }
 
     /// <summary>
-    /// Registers the real-time cache and publisher. When a "Redis" connection string is configured
-    /// the Redis-backed implementations are used; otherwise no-op fallbacks keep the app (and tests)
-    /// fully functional without a Redis server.
+    /// Registers the real-time cache and publisher using no-op implementations.
     /// </summary>
     /// <param name="services">The service collection to add to.</param>
     /// <param name="configuration">The application configuration.</param>
     private static void AddRealtime(IServiceCollection services, IConfiguration configuration)
     {
-        var redisConnectionString = configuration.GetConnectionString("Redis");
-
-        if (string.IsNullOrWhiteSpace(redisConnectionString))
-        {
-            services.AddSingleton<IOrderBookCache, NullOrderBookCache>();
-            services.AddSingleton<IRealtimePublisher, NullRealtimePublisher>();
-            return;
-        }
-
-        var options = ConfigurationOptions.Parse(redisConnectionString);
-        // Don't fail startup if Redis is briefly unavailable; the multiplexer reconnects and the
-        // implementations swallow transient errors.
-        options.AbortOnConnectFail = false;
-
-        services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(options));
-        services.AddSingleton<IOrderBookCache, RedisOrderBookCache>();
-        services.AddSingleton<IRealtimePublisher, RedisRealtimePublisher>();
-    }
-
-    /// <summary>Registers external feed adapters and the factory that resolves them by type.</summary>
-    /// <param name="services">The service collection to add to.</param>
-    private static void AddExternalFeeds(IServiceCollection services)
-    {
-        services.AddHttpClient();
-
-        services.AddSingleton<IExternalFeedAdapter, BinanceCryptoAdapter>();
-        services.AddSingleton<IExternalFeedAdapter, CustomHttpAdapter>();
-        services.AddSingleton<IFeedAdapterFactory, FeedAdapterFactory>();
+        services.AddSingleton<IOrderBookCache, NullOrderBookCache>();
+        services.AddSingleton<IRealtimePublisher, NullRealtimePublisher>();
     }
 }

@@ -29,14 +29,8 @@ public class Market : BaseEntity
     /// <summary>Populated only when Scope == Group.</summary>
     public Guid? GroupId { get; private set; }
 
-    /// <summary>The event this market belongs to (e.g. FIFA World Cup).</summary>
-    public Guid? EventId { get; private set; }
-
     /// <summary>Category for discovery and filtering.</summary>
     public Guid? CategoryId { get; private set; }
-
-    /// <summary>The sports match this market is based on.</summary>
-    public Guid? MatchId { get; private set; }
 
     /// <summary>Gets the URL of the market's main image.</summary>
     public string? ImageUrl { get; private set; }
@@ -59,21 +53,11 @@ public class Market : BaseEntity
     /// <summary>Gets the algorithmic trending score used for ranking.</summary>
     public decimal TrendingScore { get; private set; }
 
-    /// <summary>Updated by background jobs.</summary>
-    public decimal Volume24h { get; private set; }
-    /// <summary>Updated by background jobs.</summary>
-    public decimal Volume7d { get; private set; }
-    /// <summary>Updated by background jobs.</summary>
-    public decimal VolumeAllTime { get; private set; }
-    /// <summary>Updated by background jobs.</summary>
-    public decimal OpenInterest { get; private set; }
-    /// <summary>Updated by background jobs.</summary>
-    public decimal Liquidity { get; private set; }
-    /// <summary>Updated by background jobs.</summary>
-    public int TradesCount { get; private set; }
+    /// <summary>Total amount bet on all outcomes.</summary>
+    public decimal TotalBetAmount { get; private set; }
 
-    /// <summary>When set, the market's price history has been downsampled after resolution.</summary>
-    public DateTimeOffset? PriceHistoryDownsampledAt { get; private set; }
+    /// <summary>Total number of bets placed.</summary>
+    public int BetCount { get; private set; }
 
     /// <summary>Gets a citation or URL describing the resolution source.</summary>
     public string? ResolutionSource { get; private set; }
@@ -84,32 +68,20 @@ public class Market : BaseEntity
     /// <summary>Gets the group this market belongs to, if group-scoped.</summary>
     public Group? Group { get; private set; }
 
-    /// <summary>Gets the event this market is associated with.</summary>
-    public Event? Event { get; private set; }
-
     /// <summary>Gets the category this market is classified under.</summary>
     public Category? Category { get; private set; }
-
-    /// <summary>Gets the sports match this market is based on.</summary>
-    public Match? Match { get; private set; }
 
     /// <summary>Gets the resolution record, populated once the market is resolved.</summary>
     public MarketResolution? Resolution { get; private set; }
 
     /// <summary>Gets the tradeable outcomes of this market.</summary>
     public ICollection<Outcome> Outcomes { get; private set; } = new List<Outcome>();
-
-    /// <summary>Gets the comments posted on this market.</summary>
-    public ICollection<Comment> Comments { get; private set; } = new List<Comment>();
-
-    /// <summary>Gets the users who have favorited this market.</summary>
-    public ICollection<FavoriteMarket> FavoritedBy { get; private set; } = new List<FavoriteMarket>();
-
+    
     /// <summary>Creates a new prediction market with the specified outcomes.</summary>
     public static Market Create(string title, string description, DateTimeOffset resolutionDeadline,
         MarketScope scope, Guid creatorId, Guid? groupId, IReadOnlyList<string> outcomeTitles,
-        MarketType marketType = MarketType.Binary, Guid? eventId = null, Guid? categoryId = null,
-        Guid? matchId = null, string? imageUrl = null, string? slug = null)
+        MarketType marketType = MarketType.Binary, Guid? categoryId = null,
+        string? imageUrl = null, string? slug = null)
     {
         var market = new Market
         {
@@ -120,9 +92,7 @@ public class Market : BaseEntity
             CreatorId = creatorId,
             GroupId = groupId,
             MarketType = marketType,
-            EventId = eventId,
             CategoryId = categoryId,
-            MatchId = matchId,
             ImageUrl = imageUrl,
             Slug = slug
         };
@@ -161,16 +131,11 @@ public class Market : BaseEntity
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 
-    /// <summary>Updates the aggregated trading statistics for the market.</summary>
-    public void UpdateStats(decimal volume24h, decimal volume7d, decimal volumeAllTime,
-        decimal openInterest, decimal liquidity, int tradesCount)
+    /// <summary>Updates the total bet amount and count for the market.</summary>
+    public void UpdateStats(decimal totalBetAmount, int betCount)
     {
-        Volume24h = volume24h;
-        Volume7d = volume7d;
-        VolumeAllTime = volumeAllTime;
-        OpenInterest = openInterest;
-        Liquidity = liquidity;
-        TradesCount = tradesCount;
+        TotalBetAmount = totalBetAmount;
+        BetCount = betCount;
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 
@@ -193,13 +158,6 @@ public class Market : BaseEntity
     public void MarkAsResolved()
     {
         Status = MarketStatus.Resolved;
-        UpdatedAt = DateTimeOffset.UtcNow;
-    }
-
-    /// <summary>Marks the market's price history as having been downsampled.</summary>
-    public void MarkPriceHistoryDownsampled()
-    {
-        PriceHistoryDownsampledAt = DateTimeOffset.UtcNow;
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 }

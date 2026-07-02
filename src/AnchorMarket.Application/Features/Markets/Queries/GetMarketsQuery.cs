@@ -1,15 +1,32 @@
 using AnchorMarket.Application.Common.Interfaces;
-using AnchorMarket.Application.Common.Queries;
 using AnchorMarket.Application.Features.Markets.DTOs;
-using AnchorMarket.Domain.Entities;
+using AnchorMarket.Domain.Enums;
 using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace AnchorMarket.Application.Features.Markets.Queries;
 
-/// <summary>Query to retrieve all markets.</summary>
-public record GetMarketsQuery : IRequest<List<MarketDto>>;
+/// <summary>Query to retrieve markets. Pass <c>ActiveOnly = true</c> to exclude expired/resolved markets.</summary>
+public record GetMarketsQuery(bool ActiveOnly = false) : IRequest<List<MarketDto>>;
 
-/// <summary>Handles retrieving all markets.</summary>
 public class GetMarketsQueryHandler(IApplicationDbContext context, IMapper mapper)
-    : GetAllQueryHandler<Market, GetMarketsQuery, MarketDto>(context, mapper);
+    : IRequestHandler<GetMarketsQuery, List<MarketDto>>
+{
+    public Task<List<MarketDto>> Handle(GetMarketsQuery request, CancellationToken cancellationToken)
+    {
+        var query = context.Set<AnchorMarket.Domain.Entities.Market>().AsQueryable();
+
+        if (request.ActiveOnly)
+        {
+            var now = DateTimeOffset.UtcNow;
+            query = query.Where(m => m.Status == MarketStatus.Open && m.ResolutionDeadline > now);
+        }
+
+        return query
+            .OrderByDescending(m => m.CreatedAt)
+            .ProjectTo<MarketDto>(mapper.ConfigurationProvider)
+            .ToListAsync(cancellationToken);
+    }
+}

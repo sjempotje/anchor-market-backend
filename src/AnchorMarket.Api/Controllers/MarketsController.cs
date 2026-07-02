@@ -1,9 +1,12 @@
+using System;
 using AnchorMarket.Application.Features.Markets.Commands;
 using AnchorMarket.Application.Features.Markets.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace AnchorMarket.Api.Controllers;
 
@@ -18,8 +21,8 @@ public class MarketsController(ISender sender) : ControllerBase
     /// <returns>A list of markets.</returns>
     [HttpGet]
     [AllowAnonymous]
-    public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
-        => Ok(await sender.Send(new GetMarketsQuery(), cancellationToken));
+    public async Task<IActionResult> GetAll(CancellationToken cancellationToken, [FromQuery] bool activeOnly = true)
+        => Ok(await sender.Send(new GetMarketsQuery(activeOnly), cancellationToken));
 
     /// <summary>Retrieves a market by its ID.</summary>
     /// <param name="id">The market ID.</param>

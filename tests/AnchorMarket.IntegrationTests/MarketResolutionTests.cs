@@ -14,7 +14,7 @@ public class MarketResolutionTests(CustomWebApplicationFactory factory) : TestBa
     {
         var suffix = Guid.NewGuid().ToString("N")[..8];
         var creator = await RegisterUser($"res_{suffix}", $"res_{suffix}@x.com");
-        var marketId = await CreateMarket($"BTC Up/Down {suffix}", "Up or down?", creator, ["UP", "DOWN"]);
+        var marketId = await CreateMarket($"Price Movement {suffix}", "Up or down?", creator, ["UP", "DOWN"]);
         var outcomes = await GetOutcomes(marketId);
         var upId = outcomes["UP"];
 
@@ -39,7 +39,7 @@ public class MarketResolutionTests(CustomWebApplicationFactory factory) : TestBa
     {
         var suffix = Guid.NewGuid().ToString("N")[..8];
         var creator = await RegisterUser($"resn_{suffix}", $"resn_{suffix}@x.com");
-        var marketId = await CreateMarket($"BTC Up/Down {suffix}", "Up or down?", creator, ["UP", "DOWN"]);
+        var marketId = await CreateMarket($"Price Movement {suffix}", "Up or down?", creator, ["UP", "DOWN"]);
         var outcomes = await GetOutcomes(marketId);
 
         var resolve = await Client.PostAsJsonAsync($"/api/markets/{marketId}/resolve", new { winningOutcomeId = outcomes["UP"] });
@@ -52,7 +52,7 @@ public class MarketResolutionTests(CustomWebApplicationFactory factory) : TestBa
     {
         var suffix = Guid.NewGuid().ToString("N")[..8];
         var creator = await RegisterUser($"resu_{suffix}", $"resu_{suffix}@x.com");
-        var marketId = await CreateMarket($"BTC Up/Down {suffix}", "Up or down?", creator, ["UP", "DOWN"]);
+        var marketId = await CreateMarket($"Price Movement {suffix}", "Up or down?", creator, ["UP", "DOWN"]);
 
         var response = await Client.GetAsync($"/api/markets/{marketId}/resolution");
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);

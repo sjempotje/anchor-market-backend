@@ -1,9 +1,17 @@
+using System;
 using System.Text.Json.Serialization;
+using System.Threading.Tasks;
 using AnchorMarket.Application;
 using AnchorMarket.Infrastructure;
 using AnchorMarket.Infrastructure.Persistence;
 using AnchorMarket.Api.Middleware;
 using AnchorMarket.Api.WebSockets;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Scalar.AspNetCore;
 using Microsoft.OpenApi;
 
@@ -40,11 +48,8 @@ builder.Services.AddOpenApi(options =>
 // A failing background maintenance service (feed polling, partitioning, etc.) must never stop the API.
 builder.Services.Configure<HostOptions>(o => o.BackgroundServiceExceptionBehavior = BackgroundServiceExceptionBehavior.Ignore);
 
-// Real-time WebSocket layer. The connection manager is always available; the Redis backplane that
-// feeds it is only registered when Redis is configured (otherwise there is nothing to broadcast).
+// Real-time WebSocket layer.
 builder.Services.AddSingleton<WebSocketConnectionManager>();
-if (!string.IsNullOrWhiteSpace(builder.Configuration.GetConnectionString("Redis")))
-    builder.Services.AddHostedService<RealtimeBackplaneService>();
 
 var app = builder.Build();
 
@@ -75,7 +80,8 @@ app.UseWebSockets(new WebSocketOptions { KeepAliveInterval = TimeSpan.FromSecond
 // Raw WebSocket endpoint for live price/trade streams. Auth runs via the standard pipeline
 // (session token accepted from the ?token= query parameter for the handshake).
 app.MapGet("/ws", (HttpContext context, WebSocketConnectionManager manager, IServiceScopeFactory scopeFactory, ILoggerFactory loggerFactory)
-    => RealtimeWebSocketEndpoint.HandleAsync(context, manager, scopeFactory, loggerFactory.CreateLogger("RealtimeWebSocket")));
+    => RealtimeWebSocketEndpoint.HandleAsync(context, manager, scopeFactory, loggerFactory.CreateLogger("RealtimeWebSocket")))
+    .ExcludeFromDescription();
 
 app.MapControllers();
 app.Run();

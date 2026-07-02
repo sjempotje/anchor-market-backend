@@ -25,4 +25,8 @@ public class NullOrderBookCache : IOrderBookCache
     /// <inheritdoc />
     public Task<LatestPrice?> GetLatestPriceAsync(Guid outcomeId, CancellationToken cancellationToken = default)
         => Task.FromResult<LatestPrice?>(null);
+
+    /// <inheritdoc />
+    public Task RebuildAsync(Guid outcomeId, IReadOnlyList<OrderBookLevel> bids, IReadOnlyList<OrderBookLevel> asks, CancellationToken cancellationToken = default)
+        => Task.CompletedTask;
 }

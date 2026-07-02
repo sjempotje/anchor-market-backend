@@ -1,9 +1,12 @@
+using System;
 using AnchorMarket.Application.Features.Groups.Commands;
 using AnchorMarket.Application.Features.Groups.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace AnchorMarket.Api.Controllers;
 
@@ -67,6 +70,30 @@ public class GroupsController(ISender sender) : ControllerBase
     {
         var callerId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         await sender.Send(new DeleteGroupCommand(id, callerId), cancellationToken);
+        return NoContent();
+    }
+
+    /// <summary>Joins a group as the authenticated user.</summary>
+    /// <param name="id">The group ID.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>204 No Content.</returns>
+    [HttpPost("{id:guid}/join")]
+    public async Task<IActionResult> Join(Guid id, CancellationToken cancellationToken)
+    {
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        await sender.Send(new JoinGroupCommand(id, userId), cancellationToken);
+        return NoContent();
+    }
+
+    /// <summary>Leaves a group as the authenticated user.</summary>
+    /// <param name="id">The group ID.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>204 No Content.</returns>
+    [HttpDelete("{id:guid}/leave")]
+    public async Task<IActionResult> Leave(Guid id, CancellationToken cancellationToken)
+    {
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        await sender.Send(new LeaveGroupCommand(id, userId), cancellationToken);
         return NoContent();
     }
 }

@@ -19,9 +19,9 @@ public record ResolvePublicMarketCommand(
 /// <summary>Handles resolving a public market.</summary>
 public class ResolvePublicMarketCommandHandler(
     IApplicationDbContext context,
-    IRealtimePublisher realtimePublisher) : IRequestHandler<ResolvePublicMarketCommand>
+    IRealtimePublisher realtimePublisher,
+    IWalletService walletService) : IRequestHandler<ResolvePublicMarketCommand>
 {
-    /// <summary>Records the resolution, settles position fair values, and broadcasts the result.</summary>
     public async Task Handle(ResolvePublicMarketCommand request, CancellationToken cancellationToken)
     {
         var market = await context.Markets
@@ -46,8 +46,23 @@ public class ResolvePublicMarketCommandHandler(
             .Where(p => outcomeIds.Contains(p.OutcomeId))
             .ToListAsync(cancellationToken);
 
-        foreach (var position in positions)
-            position.UpdateFairValue(position.OutcomeId == request.WinningOutcomeId ? 1.0m : 0.0m);
+        var losingPositions = positions.Where(p => p.OutcomeId != request.WinningOutcomeId).ToList();
+        var winningPositions = positions.Where(p => p.OutcomeId == request.WinningOutcomeId).ToList();
+
+        var loserPool = losingPositions.Sum(p => p.Amount);
+
+        if (winningPositions.Count > 0 && loserPool > 0)
+        {
+            var payoutPerWinner = loserPool / winningPositions.Count;
+            foreach (var position in winningPositions)
+            {
+                position.Resolve(position.Amount + payoutPerWinner);
+                await walletService.CreditBalance(position.UserId, position.Amount + payoutPerWinner);
+            }
+        }
+
+        foreach (var position in losingPositions)
+            position.Resolve(0);
 
         if (request.ResolutionSource is not null || request.ResolutionNotes is not null)
             market.SetResolutionSource(request.ResolutionSource, request.ResolutionNotes);

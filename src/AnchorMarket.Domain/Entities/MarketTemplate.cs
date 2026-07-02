@@ -12,7 +12,6 @@ public class MarketTemplate : BaseEntity
     public string OutcomeTitlesJson { get; private set; } = "[]";
 
     public Guid? SportId { get; private set; }
-    public Sport? Sport { get; private set; }
 
     public static MarketTemplate Create(string name, MarketType marketType, string outcomeTitlesJson,
         Guid? sportId = null)

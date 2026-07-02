@@ -16,9 +16,7 @@ public record CreateMarketCommand(
     Guid? GroupId,
     IReadOnlyList<string> OutcomeTitles,
     MarketType MarketType = MarketType.Binary,
-    Guid? EventId = null,
     Guid? CategoryId = null,
-    Guid? MatchId = null,
     string? ImageUrl = null,
     string? Slug = null) : IRequest<Guid>;
 
@@ -53,9 +51,7 @@ public class CreateMarketCommandHandler : IRequestHandler<CreateMarketCommand, G
             request.GroupId,
             request.OutcomeTitles,
             request.MarketType,
-            request.EventId,
             request.CategoryId,
-            request.MatchId,
             request.ImageUrl,
             request.Slug);
 

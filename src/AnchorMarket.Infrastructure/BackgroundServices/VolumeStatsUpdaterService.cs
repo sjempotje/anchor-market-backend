@@ -52,76 +52,48 @@ public class VolumeStatsUpdaterService(
 
     private static async Task UpdateOutcomeStatsAsync(IApplicationDbContext db, CancellationToken cancellationToken)
     {
-        var volumeByOutcome = await db.TradeExecutions
-            .GroupBy(t => t.OutcomeId)
-            .Select(g => new { OutcomeId = g.Key, Volume = g.Sum(t => t.TotalValue) })
-            .ToDictionaryAsync(x => x.OutcomeId, x => x.Volume, cancellationToken);
-
-        var openInterestByOutcome = await db.Positions
+        var betsByOutcome = await db.Positions
             .GroupBy(p => p.OutcomeId)
-            .Select(g => new { OutcomeId = g.Key, OpenInterest = g.Sum(p => p.Shares) })
-            .ToDictionaryAsync(x => x.OutcomeId, x => x.OpenInterest, cancellationToken);
+            .Select(g => new { OutcomeId = g.Key, TotalBetAmount = g.Sum(p => p.Amount) })
+            .ToDictionaryAsync(x => x.OutcomeId, x => x.TotalBetAmount, cancellationToken);
 
-        var outcomeIds = volumeByOutcome.Keys.Union(openInterestByOutcome.Keys).ToList();
-        if (outcomeIds.Count == 0)
+        if (betsByOutcome.Count == 0)
             return;
 
         var outcomes = await db.Outcomes
-            .Where(o => outcomeIds.Contains(o.Id))
+            .Where(o => betsByOutcome.Keys.Contains(o.Id))
             .ToListAsync(cancellationToken);
 
         foreach (var outcome in outcomes)
         {
-            var volume = volumeByOutcome.GetValueOrDefault(outcome.Id);
-            var openInterest = openInterestByOutcome.GetValueOrDefault(outcome.Id);
-            outcome.UpdateStats(volume, openInterest);
+            var totalBetAmount = betsByOutcome.GetValueOrDefault(outcome.Id);
+            outcome.UpdateStats(totalBetAmount);
         }
     }
 
     private static async Task UpdateMarketStatsAsync(IApplicationDbContext db, DateTimeOffset cutoff24h, DateTimeOffset cutoff7d, CancellationToken cancellationToken)
     {
-        var allTime = await db.TradeExecutions
-            .GroupBy(t => t.MarketId)
-            .Select(g => new { MarketId = g.Key, Volume = g.Sum(t => t.TotalValue), Count = g.Count() })
+        // For simple betting: sum up bet amounts and count per market
+        var betsByMarket = await db.Positions
+            .Join(db.Outcomes, p => p.OutcomeId, o => o.Id, (p, o) => new { o.MarketId, p.Amount })
+            .GroupBy(x => x.MarketId)
+            .Select(g => new { MarketId = g.Key, TotalBetAmount = g.Sum(x => x.Amount), BetCount = g.Count() })
             .ToListAsync(cancellationToken);
 
-        if (allTime.Count == 0)
+        if (betsByMarket.Count == 0)
             return;
 
-        var volume24h = await db.TradeExecutions
-            .Where(t => t.CreatedAt >= cutoff24h)
-            .GroupBy(t => t.MarketId)
-            .Select(g => new { MarketId = g.Key, Volume = g.Sum(t => t.TotalValue) })
-            .ToDictionaryAsync(x => x.MarketId, x => x.Volume, cancellationToken);
-
-        var volume7d = await db.TradeExecutions
-            .Where(t => t.CreatedAt >= cutoff7d)
-            .GroupBy(t => t.MarketId)
-            .Select(g => new { MarketId = g.Key, Volume = g.Sum(t => t.TotalValue) })
-            .ToDictionaryAsync(x => x.MarketId, x => x.Volume, cancellationToken);
-
-        // Open interest per market = total shares held across its outcomes.
-        var openInterestByMarket = await db.Positions
-            .Join(db.Outcomes, p => p.OutcomeId, o => o.Id, (p, o) => new { o.MarketId, p.Shares })
-            .GroupBy(x => x.MarketId)
-            .Select(g => new { MarketId = g.Key, OpenInterest = g.Sum(x => x.Shares) })
-            .ToDictionaryAsync(x => x.MarketId, x => x.OpenInterest, cancellationToken);
-
-        var marketIds = allTime.Select(x => x.MarketId).ToList();
         var markets = await db.Markets
-            .Where(m => marketIds.Contains(m.Id))
+            .Where(m => betsByMarket.Select(b => b.MarketId).Contains(m.Id))
             .ToListAsync(cancellationToken);
 
         foreach (var market in markets)
         {
-            var totals = allTime.First(x => x.MarketId == market.Id);
-            market.UpdateStats(
-                volume24h.GetValueOrDefault(market.Id),
-                volume7d.GetValueOrDefault(market.Id),
-                totals.Volume,
-                openInterestByMarket.GetValueOrDefault(market.Id),
-                market.Liquidity, // preserve liquidity, maintained elsewhere
-                totals.Count);
+            var bets = betsByMarket.FirstOrDefault(x => x.MarketId == market.Id);
+            if (bets != null)
+            {
+                market.UpdateStats(bets.TotalBetAmount, bets.BetCount);
+            }
         }
     }
 }

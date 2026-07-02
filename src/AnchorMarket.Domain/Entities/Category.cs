@@ -23,10 +23,7 @@ public class Category : BaseEntity
 
     /// <summary>Gets the markets belonging to this category.</summary>
     public ICollection<Market> Markets { get; private set; } = new List<Market>();
-
-    /// <summary>Gets the events belonging to this category.</summary>
-    public ICollection<Event> Events { get; private set; } = new List<Event>();
-
+    
     /// <summary>Creates a new category.</summary>
     /// <param name="name">The display name.</param>
     /// <param name="slug">The URL-friendly slug.</param>

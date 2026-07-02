@@ -7,10 +7,6 @@ public enum NotificationType
     PriceAlert,
     /// <summary>Notification that a market has been resolved.</summary>
     MarketResolved,
-    /// <summary>Notification that a followed match is starting.</summary>
-    MatchStarting,
-    /// <summary>Notification that an order has been filled.</summary>
-    OrderFilled,
     /// <summary>Notification that a new market has been created.</summary>
     MarketCreated
 }

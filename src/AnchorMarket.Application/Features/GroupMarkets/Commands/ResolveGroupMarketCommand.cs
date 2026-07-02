@@ -17,13 +17,14 @@ public record ResolveGroupMarketCommand(
 public class ResolveGroupMarketCommandHandler : IRequestHandler<ResolveGroupMarketCommand>
 {
     private readonly IApplicationDbContext _context;
+    private readonly IWalletService _walletService;
 
-    public ResolveGroupMarketCommandHandler(IApplicationDbContext context)
+    public ResolveGroupMarketCommandHandler(IApplicationDbContext context, IWalletService walletService)
     {
         _context = context;
+        _walletService = walletService;
     }
 
-    /// <summary>Resolves the market, records the resolution, and updates position fair values.</summary>
     public async Task Handle(ResolveGroupMarketCommand request, CancellationToken cancellationToken)
     {
         var market = await _context.Markets
@@ -49,19 +50,30 @@ public class ResolveGroupMarketCommandHandler : IRequestHandler<ResolveGroupMark
         if (market.CreatorId == request.ResolverId)
             throw new InvalidOperationException("Resolver cannot be the market creator.");
 
-        var resolution = MarketResolution.Create(market.Id, request.WinningOutcomeId, request.ResolverId);
-        _context.MarketResolutions.Add(resolution);
+        _context.MarketResolutions.Add(MarketResolution.Create(market.Id, request.WinningOutcomeId, request.ResolverId));
 
         var outcomeIds = market.Outcomes.Select(o => o.Id).ToList();
         var positions = await _context.Positions
             .Where(p => outcomeIds.Contains(p.OutcomeId))
             .ToListAsync(cancellationToken);
 
-        foreach (var position in positions)
+        var losingPositions = positions.Where(p => p.OutcomeId != request.WinningOutcomeId).ToList();
+        var winningPositions = positions.Where(p => p.OutcomeId == request.WinningOutcomeId).ToList();
+
+        var loserPool = losingPositions.Sum(p => p.Amount);
+
+        if (winningPositions.Count > 0 && loserPool > 0)
         {
-            var isWinning = position.OutcomeId == request.WinningOutcomeId;
-            position.UpdateFairValue(isWinning ? 1.0m : 0.0m);
+            var payoutPerWinner = loserPool / winningPositions.Count;
+            foreach (var position in winningPositions)
+            {
+                position.Resolve(position.Amount + payoutPerWinner);
+                await _walletService.CreditBalance(position.UserId, position.Amount + payoutPerWinner);
+            }
         }
+
+        foreach (var position in losingPositions)
+            position.Resolve(0);
 
         market.MarkAsResolved();
         await _context.SaveChangesAsync(cancellationToken);

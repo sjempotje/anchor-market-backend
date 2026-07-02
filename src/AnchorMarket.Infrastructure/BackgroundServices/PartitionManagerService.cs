@@ -22,9 +22,6 @@ public class PartitionManagerService(
     /// <summary>Partitioned tables paired with their range (timestamp) column.</summary>
     private static readonly (string Table, string Column)[] PartitionedTables =
     [
-        ("PriceHistory", "Timestamp"),
-        ("OrderBookSnapshots", "Timestamp"),
-        ("FeedResults", "ReceivedAt")
     ];
 
     /// <inheritdoc />

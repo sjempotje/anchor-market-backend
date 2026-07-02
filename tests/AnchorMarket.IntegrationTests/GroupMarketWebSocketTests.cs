@@ -40,7 +40,7 @@ public class GroupMarketWebSocketTests(CustomWebApplicationFactory factory) : Te
     {
         var suffix = Guid.NewGuid().ToString("N")[..8];
         var creator = await RegisterUser($"wsp_{suffix}", $"wsp_{suffix}@x.com");
-        var marketId = await CreateMarket($"BTC Up/Down {suffix}", "Up or down?", creator, ["UP", "DOWN"]);
+        var marketId = await CreateMarket($"Price Movement {suffix}", "Up or down?", creator, ["UP", "DOWN"]);
         var upId = (await GetOutcomes(marketId))["UP"];
 
         var type = await SubscribeAndReadType(creator, new { action = "subscribe", channel = "price", outcomeId = upId });

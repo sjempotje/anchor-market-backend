@@ -37,17 +37,6 @@ public record FeedUpdateEvent(
     decimal Value,
     DateTimeOffset Timestamp);
 
-/// <summary>Broadcast payload describing the current aggregated order book for an outcome.</summary>
-/// <param name="OutcomeId">The outcome the book belongs to.</param>
-/// <param name="Bids">Bid levels, best (highest) first.</param>
-/// <param name="Asks">Ask levels, best (lowest) first.</param>
-/// <param name="Timestamp">When the book was captured.</param>
-public record OrderBookUpdateEvent(
-    Guid OutcomeId,
-    IReadOnlyList<OrderBookLevel> Bids,
-    IReadOnlyList<OrderBookLevel> Asks,
-    DateTimeOffset Timestamp);
-
 /// <summary>Broadcast payload describing a resolved market.</summary>
 /// <param name="MarketId">The resolved market.</param>
 /// <param name="GroupId">The owning group, when the market is group-scoped.</param>

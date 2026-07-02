@@ -31,12 +31,6 @@ public interface IApplicationDbContext
     /// <summary>Resolution records for settled markets.</summary>
     DbSet<MarketResolution> MarketResolutions { get; }
 
-    /// <summary>Limit orders placed by users for trading shares.</summary>
-    DbSet<LimitOrder> LimitOrders { get; }
-
-    /// <summary>Trade executions resulting from order matching.</summary>
-    DbSet<TradeExecution> TradeExecutions { get; }
-
     /// <summary>User authentication sessions.</summary>
     DbSet<Session> Sessions { get; }
     /// <summary>User accounts (authentication identities).</summary>
@@ -46,45 +40,9 @@ public interface IApplicationDbContext
 
     /// <summary>Taxonomy and discovery entities.</summary>
     DbSet<Category> Categories { get; }
-    /// <summary>Calendar events associated with markets.</summary>
-    DbSet<Event> Events { get; }
 
-    /// <summary>Sports hierarchy entities.</summary>
-    DbSet<Sport> Sports { get; }
-    /// <summary>Sports leagues within a sport.</summary>
-    DbSet<League> Leagues { get; }
-    /// <summary>Sports teams.</summary>
-    DbSet<Team> Teams { get; }
-    /// <summary>Scheduled or completed sports matches.</summary>
-    DbSet<Match> Matches { get; }
-    /// <summary>Snapshots of match state over time.</summary>
-    DbSet<MatchState> MatchStates { get; }
-    /// <summary>Media streams associated with matches.</summary>
-    DbSet<MatchStream> MatchStreams { get; }
-
-    /// <summary>Market enrichment entities.</summary>
-    DbSet<PriceHistory> PriceHistory { get; }
     /// <summary>Reusable templates for creating markets.</summary>
     DbSet<MarketTemplate> MarketTemplates { get; }
-
-    /// <summary>Social and notification entities.</summary>
-    DbSet<Comment> Comments { get; }
-    /// <summary>User notifications.</summary>
-    DbSet<Notification> Notifications { get; }
-    /// <summary>Markets favorited by users.</summary>
-    DbSet<FavoriteMarket> FavoriteMarkets { get; }
-    /// <summary>Teams favorited by users.</summary>
-    DbSet<FavoriteTeam> FavoriteTeams { get; }
-
-    /// <summary>Per-market external data feed configurations.</summary>
-    DbSet<ExternalFeedRegistration> ExternalFeedRegistrations { get; }
-    /// <summary>Raw results captured from external feeds.</summary>
-    DbSet<FeedResult> FeedResults { get; }
-
-    /// <summary>Historical order book snapshots.</summary>
-    DbSet<OrderBookSnapshot> OrderBookSnapshots { get; }
-    /// <summary>Trade executions enriched with order book depth.</summary>
-    DbSet<TradeFlowSnapshot> TradeFlowSnapshots { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 
