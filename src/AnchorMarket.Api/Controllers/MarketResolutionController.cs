@@ -39,7 +39,10 @@ public class MarketResolutionController(ISender sender) : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> GetResolution(Guid marketId, CancellationToken cancellationToken)
     {
-        var resolution = await sender.Send(new GetMarketResolutionQuery(marketId), cancellationToken);
+        Guid? callerId = Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var parsed)
+            ? parsed
+            : null;
+        var resolution = await sender.Send(new GetMarketResolutionQuery(marketId, callerId), cancellationToken);
         return resolution is null ? NotFound() : Ok(resolution);
     }
 }

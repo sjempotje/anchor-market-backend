@@ -32,7 +32,7 @@ public class MarketsController(ISender sender) : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
     {
-        var market = await sender.Send(new GetMarketByIdQuery(id), cancellationToken);
+        var market = await sender.Send(new GetMarketByIdQuery(id, GetCallerId()), cancellationToken);
         return market is null ? NotFound() : Ok(market);
     }
 
@@ -43,7 +43,11 @@ public class MarketsController(ISender sender) : ControllerBase
     [HttpGet("{id:guid}/outcomes")]
     [AllowAnonymous]
     public async Task<IActionResult> GetOutcomes(Guid id, CancellationToken cancellationToken)
-        => Ok(await sender.Send(new GetMarketOutcomesQuery(id), cancellationToken));
+        => Ok(await sender.Send(new GetMarketOutcomesQuery(id, GetCallerId()), cancellationToken));
+
+    /// <summary>Resolves the authenticated caller's ID from claims, if any (endpoints here allow anonymous access for public markets).</summary>
+    private Guid? GetCallerId()
+        => Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : null;
 
     /// <summary>Creates a new market.</summary>
     /// <param name="command">The create command.</param>

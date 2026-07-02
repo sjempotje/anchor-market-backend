@@ -1,5 +1,6 @@
 using AnchorMarket.Application.Common.Exceptions;
 using AnchorMarket.Application.Common.Interfaces;
+using AnchorMarket.Application.Common.Realtime;
 using AnchorMarket.Domain.Entities;
 using AnchorMarket.Domain.Enums;
 using MediatR;
@@ -19,11 +20,16 @@ public class PlacePositionCommandHandler : IRequestHandler<PlacePositionCommand,
 {
     private readonly IApplicationDbContext _dbContext;
     private readonly IWalletService _walletService;
+    private readonly IRealtimePublisher _realtimePublisher;
 
-    public PlacePositionCommandHandler(IApplicationDbContext dbContext, IWalletService walletService)
+    public PlacePositionCommandHandler(
+        IApplicationDbContext dbContext,
+        IWalletService walletService,
+        IRealtimePublisher realtimePublisher)
     {
         _dbContext = dbContext;
         _walletService = walletService;
+        _realtimePublisher = realtimePublisher;
     }
 
     public async Task<Guid> Handle(PlacePositionCommand request, CancellationToken cancellationToken)
@@ -51,6 +57,26 @@ public class PlacePositionCommandHandler : IRequestHandler<PlacePositionCommand,
 
         _dbContext.Positions.Add(position);
         await _dbContext.SaveChangesAsync(cancellationToken);
+
+        // Calculate and publish price updates for all outcomes (prices are interdependent)
+        var marketTotalAfter = market.TotalBetAmount + request.Amount;
+        var now = DateTimeOffset.UtcNow;
+
+        var priceUpdateTasks = market.Outcomes.Select(async o =>
+        {
+            var outcomeTotalAfter = o.Id == request.OutcomeId
+                ? o.TotalBetAmount + request.Amount
+                : o.TotalBetAmount;
+
+            var newPrice = marketTotalAfter > 0
+                ? outcomeTotalAfter / marketTotalAfter
+                : 1m / market.Outcomes.Count;
+
+            var priceUpdate = new PriceUpdateEvent(o.Id, newPrice, request.Amount, now);
+            await _realtimePublisher.PublishPriceUpdateAsync(priceUpdate, cancellationToken);
+        });
+
+        await Task.WhenAll(priceUpdateTasks);
 
         return position.Id;
     }

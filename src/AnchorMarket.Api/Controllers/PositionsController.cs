@@ -64,7 +64,7 @@ public class PositionsController(ISender sender) : ControllerBase
     {
         var callerId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         var id = await sender.Send(command with { UserId = callerId }, cancellationToken);
-        return CreatedAtAction(nameof(GetById), new { id }, null);
+        return CreatedAtAction(nameof(GetById), new { id }, id);
     }
 
     /// <summary>Closes an open position.</summary>

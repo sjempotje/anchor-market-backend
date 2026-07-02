@@ -1,15 +1,29 @@
 using AnchorMarket.Application.Common.Interfaces;
-using AnchorMarket.Application.Common.Queries;
 using AnchorMarket.Application.Features.Groups.DTOs;
-using AnchorMarket.Domain.Entities;
 using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace AnchorMarket.Application.Features.Groups.Queries;
 
 /// <summary>Query to retrieve all groups.</summary>
 public record GetGroupsQuery : IRequest<List<GroupDto>>;
 
-/// <summary>Handles retrieving all groups.</summary>
+/// <summary>
+/// Handles retrieving all groups. The join code is a secret used to gate membership of private
+/// groups, so list results never include it — only <see cref="GetGroupByIdQuery"/> reveals it, and
+/// only to members/owners.
+/// </summary>
 public class GetGroupsQueryHandler(IApplicationDbContext context, IMapper mapper)
-    : GetAllQueryHandler<Group, GetGroupsQuery, GroupDto>(context, mapper);
+    : IRequestHandler<GetGroupsQuery, List<GroupDto>>
+{
+    public async Task<List<GroupDto>> Handle(GetGroupsQuery request, CancellationToken cancellationToken)
+    {
+        var groups = await context.Groups
+            .ProjectTo<GroupDto>(mapper.ConfigurationProvider)
+            .ToListAsync(cancellationToken);
+
+        return groups.Select(g => g with { JoinCode = null }).ToList();
+    }
+}

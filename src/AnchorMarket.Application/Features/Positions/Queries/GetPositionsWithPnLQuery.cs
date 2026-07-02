@@ -49,7 +49,7 @@ public class GetPositionsWithPnLQueryHandler : IRequestHandler<GetPositionsWithP
             p.CurrentFairValue,
             p.CalculateUnrealizedPnL(),
             p.CalculateReturnOnInvestment(),
-            p.EntryPrice,
+            p.CurrentFairValue,
             p.CreatedAt,
             p.UpdatedAt)).ToList();
 

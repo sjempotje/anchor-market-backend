@@ -32,7 +32,10 @@ public class GroupsController(ISender sender) : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
     {
-        var group = await sender.Send(new GetGroupByIdQuery(id), cancellationToken);
+        Guid? callerId = Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var parsed)
+            ? parsed
+            : null;
+        var group = await sender.Send(new GetGroupByIdQuery(id, callerId), cancellationToken);
         return group is null ? NotFound() : Ok(group);
     }
 
@@ -84,6 +87,20 @@ public class GroupsController(ISender sender) : ControllerBase
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         await sender.Send(new JoinGroupCommand(id, userId, request.JoinCode), cancellationToken);
         return NoContent();
+    }
+
+    /// <summary>Retrieves a group's members. Private groups restrict this to members/owner.</summary>
+    /// <param name="id">The group ID.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The group's memberships.</returns>
+    [HttpGet("{id:guid}/members")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetMembers(Guid id, CancellationToken cancellationToken)
+    {
+        Guid? callerId = Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var parsed)
+            ? parsed
+            : null;
+        return Ok(await sender.Send(new GetGroupMembersQuery(id, callerId), cancellationToken));
     }
 
     /// <summary>Leaves a group as the authenticated user.</summary>

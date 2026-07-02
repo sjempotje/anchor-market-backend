@@ -48,8 +48,10 @@ builder.Services.AddOpenApi(options =>
 // A failing background maintenance service (feed polling, partitioning, etc.) must never stop the API.
 builder.Services.Configure<HostOptions>(o => o.BackgroundServiceExceptionBehavior = BackgroundServiceExceptionBehavior.Ignore);
 
-// Real-time WebSocket layer.
+// Real-time WebSocket layer. Registered after AddInfrastructure so it overrides the
+// NullRealtimePublisher fallback registered there.
 builder.Services.AddSingleton<WebSocketConnectionManager>();
+builder.Services.AddSingleton<AnchorMarket.Application.Common.Interfaces.IRealtimePublisher, WebSocketRealtimePublisher>();
 
 var app = builder.Build();
 
