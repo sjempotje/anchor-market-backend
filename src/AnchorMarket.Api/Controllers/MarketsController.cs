@@ -45,6 +45,26 @@ public class MarketsController(ISender sender) : ControllerBase
     public async Task<IActionResult> GetOutcomes(Guid id, CancellationToken cancellationToken)
         => Ok(await sender.Send(new GetMarketOutcomesQuery(id, GetCallerId()), cancellationToken));
 
+    /// <summary>Retrieves an outcome's historical implied-probability price series.</summary>
+    /// <param name="outcomeId">The outcome ID.</param>
+    /// <param name="limit">Maximum number of most-recent points to return.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The outcome's price history, oldest first.</returns>
+    [HttpGet("outcomes/{outcomeId:guid}/price-history")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetOutcomePriceHistory(Guid outcomeId, [FromQuery] int limit = 500, CancellationToken cancellationToken = default)
+        => Ok(await sender.Send(new GetOutcomePriceHistoryQuery(outcomeId, limit, GetCallerId()), cancellationToken));
+
+    /// <summary>Retrieves a market's most recent trades across all outcomes.</summary>
+    /// <param name="id">The market ID.</param>
+    /// <param name="limit">Maximum number of most-recent trades to return.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The market's trades, most recent first.</returns>
+    [HttpGet("{id:guid}/trades")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetTrades(Guid id, [FromQuery] int limit = 50, CancellationToken cancellationToken = default)
+        => Ok(await sender.Send(new GetMarketTradesQuery(id, limit, GetCallerId()), cancellationToken));
+
     /// <summary>Resolves the authenticated caller's ID from claims, if any (endpoints here allow anonymous access for public markets).</summary>
     private Guid? GetCallerId()
         => Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : null;

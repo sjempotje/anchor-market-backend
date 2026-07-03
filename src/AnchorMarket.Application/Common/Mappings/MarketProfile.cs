@@ -20,6 +20,7 @@ public class MarketProfile : Profile
                 src.Scope,
                 src.MarketType,
                 src.CreatorId,
+                src.AssignedResolverId,
                 src.GroupId,
                 src.CategoryId,
                 src.ImageUrl,

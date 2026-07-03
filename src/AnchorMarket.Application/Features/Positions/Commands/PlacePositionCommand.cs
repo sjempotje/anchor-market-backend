@@ -58,25 +58,42 @@ public class PlacePositionCommandHandler : IRequestHandler<PlacePositionCommand,
         _dbContext.Positions.Add(position);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        // Calculate and publish price updates for all outcomes (prices are interdependent)
-        var marketTotalAfter = market.TotalBetAmount + request.Amount;
+        var liveTotalsByOutcome = await _dbContext.Positions
+            .Where(p => p.MarketId == market.Id)
+            .GroupBy(p => p.OutcomeId)
+            .Select(g => new { OutcomeId = g.Key, Total = g.Sum(p => p.Amount) })
+            .ToDictionaryAsync(x => x.OutcomeId, x => x.Total, cancellationToken);
+
+        var marketTotalAfter = liveTotalsByOutcome.Values.Sum();
         var now = DateTimeOffset.UtcNow;
 
-        var priceUpdateTasks = market.Outcomes.Select(async o =>
+        var newPrices = market.Outcomes.ToDictionary(
+            o => o.Id,
+            o =>
+            {
+                var outcomeTotalAfter = liveTotalsByOutcome.GetValueOrDefault(o.Id, 0m);
+
+                return marketTotalAfter > 0
+                    ? outcomeTotalAfter / marketTotalAfter
+                    : 1m / market.Outcomes.Count;
+            });
+
+        foreach (var o in market.Outcomes)
         {
-            var outcomeTotalAfter = o.Id == request.OutcomeId
-                ? o.TotalBetAmount + request.Amount
-                : o.TotalBetAmount;
+            _dbContext.OutcomePricePoints.Add(
+                OutcomePricePoint.Create(o.Id, newPrices[o.Id], request.Amount, isTrade: o.Id == request.OutcomeId));
+        }
+        await _dbContext.SaveChangesAsync(cancellationToken);
 
-            var newPrice = marketTotalAfter > 0
-                ? outcomeTotalAfter / marketTotalAfter
-                : 1m / market.Outcomes.Count;
-
-            var priceUpdate = new PriceUpdateEvent(o.Id, newPrice, request.Amount, now);
-            await _realtimePublisher.PublishPriceUpdateAsync(priceUpdate, cancellationToken);
-        });
+        var priceUpdateTasks = market.Outcomes.Select(o =>
+            _realtimePublisher.PublishPriceUpdateAsync(
+                new PriceUpdateEvent(o.Id, newPrices[o.Id], request.Amount, now), cancellationToken));
 
         await Task.WhenAll(priceUpdateTasks);
+
+        await _realtimePublisher.PublishTradeAsync(
+            new TradeExecutedEvent(market.Id, request.OutcomeId, newPrices[request.OutcomeId], request.Amount, now),
+            cancellationToken);
 
         return position.Id;
     }

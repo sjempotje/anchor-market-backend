@@ -98,8 +98,7 @@ public class PartitionManagerService(
         }
         catch (PostgresException ex) when (ex.SqlState == PostgresErrorCodes.CheckViolation)
         {
-            // The default partition already holds rows in this range. Migrate them into a fresh
-            // monthly partition: detach default, create the partition, move the matching rows, reattach.
+            // Migrate default-partition rows into a fresh monthly partition.
             var defaultPartition = $"{table}_default";
             await using var tx = await db.Database.BeginTransactionAsync(cancellationToken);
 

@@ -45,11 +45,8 @@ builder.Services.AddOpenApi(options =>
     options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
 });
 
-// A failing background maintenance service (feed polling, partitioning, etc.) must never stop the API.
 builder.Services.Configure<HostOptions>(o => o.BackgroundServiceExceptionBehavior = BackgroundServiceExceptionBehavior.Ignore);
 
-// Real-time WebSocket layer. Registered after AddInfrastructure so it overrides the
-// NullRealtimePublisher fallback registered there.
 builder.Services.AddSingleton<WebSocketConnectionManager>();
 builder.Services.AddSingleton<AnchorMarket.Application.Common.Interfaces.IRealtimePublisher, WebSocketRealtimePublisher>();
 
@@ -79,8 +76,6 @@ if (!app.Environment.IsEnvironment("Testing"))
 
 app.UseWebSockets(new WebSocketOptions { KeepAliveInterval = TimeSpan.FromSeconds(15) });
 
-// Raw WebSocket endpoint for live price/trade streams. Auth runs via the standard pipeline
-// (session token accepted from the ?token= query parameter for the handshake).
 app.MapGet("/ws", (HttpContext context, WebSocketConnectionManager manager, IServiceScopeFactory scopeFactory, ILoggerFactory loggerFactory)
     => RealtimeWebSocketEndpoint.HandleAsync(context, manager, scopeFactory, loggerFactory.CreateLogger("RealtimeWebSocket")))
     .ExcludeFromDescription();

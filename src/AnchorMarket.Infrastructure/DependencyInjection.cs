@@ -60,8 +60,6 @@ public static class DependencyInjection
     private static void AddBackgroundServices(IServiceCollection services, IConfiguration configuration)
     {
         var enabled = !string.Equals(configuration["BackgroundServices:Enabled"], "false", StringComparison.OrdinalIgnoreCase);
-        // Skip when no database is configured (e.g. build-time OpenAPI generation, design-time tooling),
-        // where booting the host would spam connection failures.
         var hasDatabase = !string.IsNullOrWhiteSpace(configuration.GetConnectionString("DefaultConnection"));
         if (!enabled || !hasDatabase)
             return;

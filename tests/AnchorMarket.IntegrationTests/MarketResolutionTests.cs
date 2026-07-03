@@ -65,7 +65,9 @@ public class MarketResolutionTests(CustomWebApplicationFactory factory) : TestBa
         var owner = await RegisterUser($"resg_{suffix}", $"resg_{suffix}@x.com");
         var groupId = await CreateGroup($"Grp {suffix}", "g", owner);
         await AddGroupMembership(owner, groupId);
-        var marketId = await CreateGroupMarket(groupId, owner, $"Grp Market {suffix}", "g", ["UP", "DOWN"]);
+        var resolverId = await RegisterUser($"resgres_{suffix}", $"resgres_{suffix}@x.com");
+        await AddGroupMembership(resolverId, groupId);
+        var marketId = await CreateGroupMarket(groupId, owner, $"Grp Market {suffix}", "g", ["UP", "DOWN"], resolverId);
         var outcomes = await GetOutcomes(marketId);
 
         TestAuthHandler.IsAdmin = true;

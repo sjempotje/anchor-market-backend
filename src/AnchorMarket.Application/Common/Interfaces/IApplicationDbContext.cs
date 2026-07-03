@@ -30,6 +30,8 @@ public interface IApplicationDbContext
     DbSet<Transaction> Transactions { get; }
     /// <summary>Resolution records for settled markets.</summary>
     DbSet<MarketResolution> MarketResolutions { get; }
+    /// <summary>Historical implied-probability prices sampled on each trade.</summary>
+    DbSet<OutcomePricePoint> OutcomePricePoints { get; }
 
     /// <summary>User authentication sessions.</summary>
     DbSet<Session> Sessions { get; }

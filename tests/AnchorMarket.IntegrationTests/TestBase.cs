@@ -71,8 +71,9 @@ public abstract class TestBase : IClassFixture<CustomWebApplicationFactory>, IAs
         return Guid.Parse(location.Segments[^1]);
     }
 
-    protected async Task<Guid> CreateGroupMarket(Guid groupId, Guid creatorId, string title, string description, string[] outcomeTitles)
+    protected async Task<Guid> CreateGroupMarket(Guid groupId, Guid creatorId, string title, string description, string[] outcomeTitles, Guid resolverId)
     {
+        TestAuthHandler.CurrentUserId = creatorId;
         var response = await Client.PostAsJsonAsync("/api/group-markets", new
         {
             groupId,
@@ -80,9 +81,11 @@ public abstract class TestBase : IClassFixture<CustomWebApplicationFactory>, IAs
             title,
             description,
             resolutionDeadline = DateTimeOffset.UtcNow.AddDays(30),
-            outcomeTitles
+            outcomeTitles,
+            resolverId
         });
-        response.EnsureSuccessStatusCode();
+        if (!response.IsSuccessStatusCode)
+            throw new Exception($"{response.StatusCode}: {await response.Content.ReadAsStringAsync()}");
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         var location = response.Headers.Location!;
         return Guid.Parse(location.Segments[^1]);
@@ -132,9 +135,13 @@ public abstract class TestBase : IClassFixture<CustomWebApplicationFactory>, IAs
         await db.SaveChangesAsync();
     }
 
+    /// <summary>Adds a group membership if one doesn't already exist (e.g. the owner is auto-joined on creation).</summary>
     protected async Task AddGroupMembership(Guid userId, Guid groupId)
     {
         using var db = Factory.CreateDbContext();
+        var exists = await db.GroupMemberships.AnyAsync(m => m.UserId == userId && m.GroupId == groupId);
+        if (exists) return;
+
         var membership = GroupMembership.Create(userId, groupId);
         db.GroupMemberships.Add(membership);
         await db.SaveChangesAsync();

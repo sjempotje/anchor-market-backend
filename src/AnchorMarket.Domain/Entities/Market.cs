@@ -26,6 +26,9 @@ public class Market : BaseEntity
     /// <summary>The user who created this market.</summary>
     public Guid CreatorId { get; private set; }
 
+    /// <summary>The group member designated by the creator to resolve this market.</summary>
+    public Guid? AssignedResolverId { get; private set; }
+
     /// <summary>Populated only when Scope == Group.</summary>
     public Guid? GroupId { get; private set; }
 
@@ -81,7 +84,7 @@ public class Market : BaseEntity
     public static Market Create(string title, string description, DateTimeOffset resolutionDeadline,
         MarketScope scope, Guid creatorId, Guid? groupId, IReadOnlyList<string> outcomeTitles,
         MarketType marketType = MarketType.Binary, Guid? categoryId = null,
-        string? imageUrl = null, string? slug = null)
+        string? imageUrl = null, string? slug = null, Guid? assignedResolverId = null)
     {
         var market = new Market
         {
@@ -94,7 +97,8 @@ public class Market : BaseEntity
             MarketType = marketType,
             CategoryId = categoryId,
             ImageUrl = imageUrl,
-            Slug = slug
+            Slug = slug,
+            AssignedResolverId = assignedResolverId
         };
 
         foreach (var outcomeTitle in outcomeTitles)

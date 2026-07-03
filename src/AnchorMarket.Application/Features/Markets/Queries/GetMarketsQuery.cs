@@ -39,6 +39,7 @@ public class GetMarketsQueryHandler(IApplicationDbContext context)
                 m.Scope,
                 m.MarketType,
                 m.CreatorId,
+                m.AssignedResolverId,
                 m.GroupId,
                 m.CategoryId,
                 m.ImageUrl,

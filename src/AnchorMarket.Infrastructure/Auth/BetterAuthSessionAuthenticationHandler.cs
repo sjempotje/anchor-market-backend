@@ -47,17 +47,12 @@ public class BetterAuthSessionAuthenticationHandler(
         }
         else if (Request.Query.TryGetValue("token", out var queryToken))
         {
-            // WebSocket handshakes can't set the Authorization header, so the token may be
-            // supplied as a query parameter (e.g. ws://.../ws?token=<session token>).
             token = queryToken;
         }
 
         if (string.IsNullOrWhiteSpace(token))
             return AuthenticateResult.NoResult();
 
-        // Better Auth stores only the prefix before the '.', the suffix is an
-        // HMAC-SHA256 signature over the prefix, base64-encoded.
-        // Cookie values arriving via Bearer header may be URL-encoded.
         var decoded = Uri.UnescapeDataString(token);
         var parts = decoded.Split('.', 2);
         if (parts.Length != 2)

@@ -12,6 +12,7 @@ public record MarketDto(
     MarketScope Scope,
     MarketType MarketType,
     Guid CreatorId,
+    Guid? AssignedResolverId,
     Guid? GroupId,
     Guid? CategoryId,
     string? ImageUrl,

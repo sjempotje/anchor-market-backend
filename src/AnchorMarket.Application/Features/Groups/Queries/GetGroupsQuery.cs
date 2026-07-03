@@ -10,11 +10,7 @@ namespace AnchorMarket.Application.Features.Groups.Queries;
 /// <summary>Query to retrieve all groups.</summary>
 public record GetGroupsQuery : IRequest<List<GroupDto>>;
 
-/// <summary>
-/// Handles retrieving all groups. The join code is a secret used to gate membership of private
-/// groups, so list results never include it — only <see cref="GetGroupByIdQuery"/> reveals it, and
-/// only to members/owners.
-/// </summary>
+/// <summary>Handles retrieving all groups.</summary>
 public class GetGroupsQueryHandler(IApplicationDbContext context, IMapper mapper)
     : IRequestHandler<GetGroupsQuery, List<GroupDto>>
 {

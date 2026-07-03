@@ -149,10 +149,7 @@ public static class RealtimeWebSocketEndpoint
         }
     }
 
-    /// <summary>
-    /// Authorizes a subscription. Topics over a group-scoped market (resolved via the requested
-    /// market/outcome/group) are only allowed for members of that group; public markets are open.
-    /// </summary>
+    /// <summary>Authorizes a subscription against group membership.</summary>
     private static async Task<bool> IsAuthorizedAsync(
         IServiceScopeFactory scopeFactory, SubscriptionRequest request, Guid userId, CancellationToken cancellationToken)
     {
@@ -174,7 +171,7 @@ public static class RealtimeWebSocketEndpoint
         }
 
         if (marketId is null)
-            return true; // unknown target — there is nothing private to leak
+            return true; // unknown target
 
         var market = await db.Markets
             .Where(m => m.Id == marketId)
@@ -182,7 +179,7 @@ public static class RealtimeWebSocketEndpoint
             .FirstOrDefaultAsync(cancellationToken);
 
         if (market is null || market.Scope != MarketScope.Group)
-            return true; // public market (or not found) — open
+            return true; // public market
 
         return market.GroupId is { } groupId && await IsMemberAsync(db, userId, groupId, cancellationToken);
     }

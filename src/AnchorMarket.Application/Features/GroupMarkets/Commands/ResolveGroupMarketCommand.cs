@@ -42,13 +42,8 @@ public class ResolveGroupMarketCommandHandler : IRequestHandler<ResolveGroupMark
         if (outcome is null)
             throw new NotFoundException("Winning outcome not found for this market.");
 
-        var isMember = await _context.GroupMemberships
-            .AnyAsync(m => m.GroupId == market.GroupId && m.UserId == request.ResolverId, cancellationToken);
-        if (!isMember)
-            throw new InvalidOperationException("Only group members can resolve group markets.");
-
-        if (market.CreatorId == request.ResolverId)
-            throw new InvalidOperationException("Resolver cannot be the market creator.");
+        if (market.AssignedResolverId != request.ResolverId)
+            throw new InvalidOperationException("Only the resolver assigned by the market creator can resolve this market.");
 
         _context.MarketResolutions.Add(MarketResolution.Create(market.Id, request.WinningOutcomeId, request.ResolverId));
 
@@ -61,14 +56,23 @@ public class ResolveGroupMarketCommandHandler : IRequestHandler<ResolveGroupMark
         var winningPositions = positions.Where(p => p.OutcomeId == request.WinningOutcomeId).ToList();
 
         var loserPool = losingPositions.Sum(p => p.Amount);
+        var winnerPool = winningPositions.Sum(p => p.Amount);
 
-        if (winningPositions.Count > 0 && loserPool > 0)
+        if (winningPositions.Count > 0 && loserPool > 0 && winnerPool > 0)
         {
-            var payoutPerWinner = loserPool / winningPositions.Count;
             foreach (var position in winningPositions)
             {
-                position.Resolve(position.Amount + payoutPerWinner);
-                await _walletService.CreditBalance(position.UserId, position.Amount + payoutPerWinner);
+                var share = position.Amount / winnerPool * loserPool;
+                position.Resolve(position.Amount + share);
+                await _walletService.CreditBalance(position.UserId, position.Amount + share);
+            }
+        }
+        else
+        {
+            foreach (var position in winningPositions)
+            {
+                position.Resolve(position.Amount);
+                await _walletService.CreditBalance(position.UserId, position.Amount);
             }
         }
 

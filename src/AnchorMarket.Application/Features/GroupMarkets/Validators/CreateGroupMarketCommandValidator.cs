@@ -15,5 +15,6 @@ public class CreateGroupMarketCommandValidator : AbstractValidator<CreateGroupMa
         RuleFor(x => x.Description).NotEmpty().MaximumLength(2000);
         RuleFor(x => x.ResolutionDeadline).GreaterThan(DateTimeOffset.UtcNow);
         RuleFor(x => x.OutcomeTitles).NotEmpty();
+        RuleFor(x => x.ResolverId).NotEmpty();
     }
 }

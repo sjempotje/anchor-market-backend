@@ -36,9 +36,6 @@ public class ClosePositionCommandHandler : IRequestHandler<ClosePositionCommand>
         var wallet = await _context.Wallets.FirstOrDefaultAsync(w => w.UserId == request.UserId, cancellationToken);
         if (wallet is not null)
         {
-            // Resolved markets: pay out at settlement fair value (1.0 for winners, 0.0 for losers).
-            // Open markets: return the original cost basis so early exits can't exploit a
-            // manipulated CurrentFairValue that hasn't been through the resolution process.
             var returnAmount = marketStatus == MarketStatus.Resolved
                 ? position.Shares * position.CurrentFairValue
                 : position.Shares * position.EntryPrice;

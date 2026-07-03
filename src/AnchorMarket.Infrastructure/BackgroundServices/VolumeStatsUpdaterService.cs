@@ -73,7 +73,6 @@ public class VolumeStatsUpdaterService(
 
     private static async Task UpdateMarketStatsAsync(IApplicationDbContext db, DateTimeOffset cutoff24h, DateTimeOffset cutoff7d, CancellationToken cancellationToken)
     {
-        // For simple betting: sum up bet amounts and count per market
         var betsByMarket = await db.Positions
             .Join(db.Outcomes, p => p.OutcomeId, o => o.Id, (p, o) => new { o.MarketId, p.Amount })
             .GroupBy(x => x.MarketId)

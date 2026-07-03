@@ -57,7 +57,7 @@ public class GroupMarketWebSocketTests(CustomWebApplicationFactory factory) : Te
         var groupId = await CreateGroup($"Grp {suffix}", "g", owner);
         await AddGroupMembership(owner, groupId);
         await AddGroupMembership(member, groupId);
-        var marketId = await CreateGroupMarket(groupId, owner, $"Grp Market {suffix}", "g", ["UP", "DOWN"]);
+        var marketId = await CreateGroupMarket(groupId, owner, $"Grp Market {suffix}", "g", ["UP", "DOWN"], member);
         var upId = (await GetOutcomes(marketId))["UP"];
 
         var type = await SubscribeAndReadType(member, new { action = "subscribe", channel = "price", outcomeId = upId });
@@ -73,8 +73,10 @@ public class GroupMarketWebSocketTests(CustomWebApplicationFactory factory) : Te
         var outsider = await RegisterUser($"wsn_x_{suffix}", $"wsn_x_{suffix}@x.com");
         var groupId = await CreateGroup($"Grp {suffix}", "g", owner);
         await AddGroupMembership(owner, groupId);
+        var resolverId = await RegisterUser($"wsn_r_{suffix}", $"wsn_r_{suffix}@x.com");
+        await AddGroupMembership(resolverId, groupId);
         TestAuthHandler.CurrentUserId = owner; // the group market must be created by a member
-        var marketId = await CreateGroupMarket(groupId, owner, $"Grp Market {suffix}", "g", ["UP", "DOWN"]);
+        var marketId = await CreateGroupMarket(groupId, owner, $"Grp Market {suffix}", "g", ["UP", "DOWN"], resolverId);
         var upId = (await GetOutcomes(marketId))["UP"];
 
         // The outsider is not a group member, so the private group market's price stream is denied.

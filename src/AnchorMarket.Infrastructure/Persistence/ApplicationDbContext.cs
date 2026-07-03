@@ -23,6 +23,7 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<Wallet> Wallets => Set<Wallet>();
     public DbSet<Transaction> Transactions => Set<Transaction>();
     public DbSet<MarketResolution> MarketResolutions => Set<MarketResolution>();
+    public DbSet<OutcomePricePoint> OutcomePricePoints => Set<OutcomePricePoint>();
 
     public DbSet<Session> Sessions => Set<Session>();
     public DbSet<Account> Accounts => Set<Account>();

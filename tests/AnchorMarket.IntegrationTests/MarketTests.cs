@@ -95,7 +95,9 @@ public class MarketTests(CustomWebApplicationFactory factory) : TestBase(factory
         var userId = await RegisterUser($"gm_{suffix}", $"gm_{suffix}@example.com");
         var groupId = await CreateGroup($"GM Group {suffix}", null, userId);
         await AddGroupMembership(userId, groupId);
-        var marketId = await CreateGroupMarket(groupId, userId, $"GM Market {suffix}", "Group market description", ["Yes", "No"]);
+        var resolverId = await RegisterUser($"gmres3_{suffix}", $"gmres3_{suffix}@example.com");
+        await AddGroupMembership(resolverId, groupId);
+        var marketId = await CreateGroupMarket(groupId, userId, $"GM Market {suffix}", "Group market description", ["Yes", "No"], resolverId);
         Assert.NotEqual(Guid.Empty, marketId);
     }
 
@@ -106,7 +108,9 @@ public class MarketTests(CustomWebApplicationFactory factory) : TestBase(factory
         var userId = await RegisterUser($"gmlist_{suffix}", $"gmlist_{suffix}@example.com");
         var groupId = await CreateGroup($"GM List Group {suffix}", null, userId);
         await AddGroupMembership(userId, groupId);
-        await CreateGroupMarket(groupId, userId, $"GM List Mkt {suffix}", "Desc", ["Yes", "No"]);
+        var resolverId = await RegisterUser($"gmlistres_{suffix}", $"gmlistres_{suffix}@example.com");
+        await AddGroupMembership(resolverId, groupId);
+        await CreateGroupMarket(groupId, userId, $"GM List Mkt {suffix}", "Desc", ["Yes", "No"], resolverId);
 
         var response = await Client.GetAsync($"/api/group-markets?groupId={groupId}&requestingUserId={userId}");
         response.EnsureSuccessStatusCode();
@@ -123,7 +127,9 @@ public class MarketTests(CustomWebApplicationFactory factory) : TestBase(factory
         var ownerId = await RegisterUser($"gmem_{suffix}", $"gmem_{suffix}@example.com");
         var groupId = await CreateGroup($"GM Empty {suffix}", null, ownerId);
         await AddGroupMembership(ownerId, groupId);
-        await CreateGroupMarket(groupId, ownerId, $"GM Empty Mkt {suffix}", "Desc", ["Yes", "No"]);
+        var resolverId = await RegisterUser($"gmemres_{suffix}", $"gmemres_{suffix}@example.com");
+        await AddGroupMembership(resolverId, groupId);
+        await CreateGroupMarket(groupId, ownerId, $"GM Empty Mkt {suffix}", "Desc", ["Yes", "No"], resolverId);
 
         var nonMemberId = await RegisterUser($"gmem2_{suffix}", $"gmem2_{suffix}@example.com");
 
@@ -142,7 +148,9 @@ public class MarketTests(CustomWebApplicationFactory factory) : TestBase(factory
         var userId = await RegisterUser($"gmbi_{suffix}", $"gmbi_{suffix}@example.com");
         var groupId = await CreateGroup($"GM ById {suffix}", null, userId);
         await AddGroupMembership(userId, groupId);
-        var marketId = await CreateGroupMarket(groupId, userId, $"GM ById Mkt {suffix}", "Desc", ["Yes", "No"]);
+        var resolverId = await RegisterUser($"gmbires_{suffix}", $"gmbires_{suffix}@example.com");
+        await AddGroupMembership(resolverId, groupId);
+        var marketId = await CreateGroupMarket(groupId, userId, $"GM ById Mkt {suffix}", "Desc", ["Yes", "No"], resolverId);
 
         var response = await Client.GetAsync($"/api/group-markets/{marketId}");
         response.EnsureSuccessStatusCode();
@@ -167,12 +175,15 @@ public class MarketTests(CustomWebApplicationFactory factory) : TestBase(factory
         var creatorId = await RegisterUser($"gmres_{suffix}", $"gmres_{suffix}@example.com");
         var groupId = await CreateGroup($"GM Resolve {suffix}", null, creatorId);
         await AddGroupMembership(creatorId, groupId);
-        var marketId = await CreateGroupMarket(groupId, creatorId, $"GM Resolve Mkt {suffix}", "Desc", ["Yes", "No"]);
-        var outcomeId = await GetOutcomeId(marketId);
 
         var resolverId = await RegisterUser($"gmres2_{suffix}", $"gmres2_{suffix}@example.com");
         await AddGroupMembership(resolverId, groupId);
 
+        var marketId = await CreateGroupMarket(groupId, creatorId, $"GM Resolve Mkt {suffix}", "Desc", ["Yes", "No"], resolverId);
+        var outcomeId = await GetOutcomeId(marketId);
+
+        // The controller overrides ResolverId with the authenticated caller.
+        TestAuthHandler.CurrentUserId = resolverId;
         var response = await Client.PostAsJsonAsync($"/api/group-markets/{marketId}/resolve", new
         {
             marketId,
@@ -189,7 +200,9 @@ public class MarketTests(CustomWebApplicationFactory factory) : TestBase(factory
         var userId = await RegisterUser($"gmrc_{suffix}", $"gmrc_{suffix}@example.com");
         var groupId = await CreateGroup($"GM RC {suffix}", null, userId);
         await AddGroupMembership(userId, groupId);
-        var marketId = await CreateGroupMarket(groupId, userId, $"GM RC Mkt {suffix}", "Desc", ["Yes", "No"]);
+        var resolverId = await RegisterUser($"gmrcres_{suffix}", $"gmrcres_{suffix}@example.com");
+        await AddGroupMembership(resolverId, groupId);
+        var marketId = await CreateGroupMarket(groupId, userId, $"GM RC Mkt {suffix}", "Desc", ["Yes", "No"], resolverId);
         var outcomeId = await GetOutcomeId(marketId);
 
         var response = await Client.PostAsJsonAsync($"/api/group-markets/{marketId}/resolve", new
@@ -208,7 +221,9 @@ public class MarketTests(CustomWebApplicationFactory factory) : TestBase(factory
         var userId = await RegisterUser($"gmcn_{suffix}", $"gmcn_{suffix}@example.com");
         var groupId = await CreateGroup($"GM Cancel {suffix}", null, userId);
         await AddGroupMembership(userId, groupId);
-        var marketId = await CreateGroupMarket(groupId, userId, $"GM Cancel Mkt {suffix}", "Desc", ["Yes", "No"]);
+        var resolverId = await RegisterUser($"gmcnres_{suffix}", $"gmcnres_{suffix}@example.com");
+        await AddGroupMembership(resolverId, groupId);
+        var marketId = await CreateGroupMarket(groupId, userId, $"GM Cancel Mkt {suffix}", "Desc", ["Yes", "No"], resolverId);
 
         var response = await Client.PostAsJsonAsync($"/api/group-markets/{marketId}/cancel", new
         {
@@ -225,7 +240,9 @@ public class MarketTests(CustomWebApplicationFactory factory) : TestBase(factory
         var creatorId = await RegisterUser($"gmnc_{suffix}", $"gmnc_{suffix}@example.com");
         var groupId = await CreateGroup($"GM NC {suffix}", null, creatorId);
         await AddGroupMembership(creatorId, groupId);
-        var marketId = await CreateGroupMarket(groupId, creatorId, $"GM NC Mkt {suffix}", "Desc", ["Yes", "No"]);
+        var resolverId = await RegisterUser($"gmncres_{suffix}", $"gmncres_{suffix}@example.com");
+        await AddGroupMembership(resolverId, groupId);
+        var marketId = await CreateGroupMarket(groupId, creatorId, $"GM NC Mkt {suffix}", "Desc", ["Yes", "No"], resolverId);
 
         var otherUserId = await RegisterUser($"gmnc2_{suffix}", $"gmnc2_{suffix}@example.com");
 
@@ -249,7 +266,9 @@ public class MarketTests(CustomWebApplicationFactory factory) : TestBase(factory
         // Create group and group market
         var groupId = await CreateGroup($"Group {suffix}", null, userId);
         await AddGroupMembership(userId, groupId);
-        var groupMarketId = await CreateGroupMarket(groupId, userId, $"GroupMkt {suffix}", "Group market", ["Yes", "No"]);
+        var resolverId = await RegisterUser($"mktpubres_{suffix}", $"mktpubres_{suffix}@example.com");
+        await AddGroupMembership(resolverId, groupId);
+        var groupMarketId = await CreateGroupMarket(groupId, userId, $"GroupMkt {suffix}", "Group market", ["Yes", "No"], resolverId);
 
         // Fetch public markets
         var response = await Client.GetAsync("/api/markets");
@@ -268,7 +287,9 @@ public class MarketTests(CustomWebApplicationFactory factory) : TestBase(factory
         var ownerId = await RegisterUser($"isolated_{suffix}", $"isolated_{suffix}@example.com");
         var groupId = await CreateGroup($"Isolated {suffix}", null, ownerId);
         await AddGroupMembership(ownerId, groupId);
-        await CreateGroupMarket(groupId, ownerId, $"Isolated Mkt {suffix}", "Desc", ["Yes", "No"]);
+        var resolverId = await RegisterUser($"isolatedres_{suffix}", $"isolatedres_{suffix}@example.com");
+        await AddGroupMembership(resolverId, groupId);
+        await CreateGroupMarket(groupId, ownerId, $"Isolated Mkt {suffix}", "Desc", ["Yes", "No"], resolverId);
 
         // Another user tries to get public markets - should not see group market
         var otherUserId = await RegisterUser($"isolated2_{suffix}", $"isolated2_{suffix}@example.com");
