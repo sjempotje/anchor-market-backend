@@ -114,6 +114,19 @@ public class GroupsController(ISender sender) : ControllerBase
         await sender.Send(new LeaveGroupCommand(id, userId), cancellationToken);
         return NoContent();
     }
+
+    /// <summary>Removes a member from a group. Only the group owner may do this.</summary>
+    /// <param name="id">The group ID.</param>
+    /// <param name="userId">The ID of the member to remove.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>204 No Content.</returns>
+    [HttpDelete("{id:guid}/members/{userId:guid}")]
+    public async Task<IActionResult> RemoveMember(Guid id, Guid userId, CancellationToken cancellationToken)
+    {
+        var callerId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        await sender.Send(new RemoveGroupMemberCommand(id, callerId, userId), cancellationToken);
+        return NoContent();
+    }
 }
 
 /// <summary>Request model for joining a group.</summary>
