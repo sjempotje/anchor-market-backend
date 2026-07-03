@@ -1,6 +1,7 @@
 using AnchorMarket.Application.Common.Interfaces;
 using AnchorMarket.Infrastructure.Auth;
 using AnchorMarket.Infrastructure.BackgroundServices;
+using AnchorMarket.Infrastructure.BackgroundServices.BotSimulation;
 using AnchorMarket.Infrastructure.Persistence;
 using AnchorMarket.Infrastructure.Realtime;
 using Microsoft.AspNetCore.Authentication;
@@ -66,6 +67,29 @@ public static class DependencyInjection
 
         services.AddHostedService<VolumeStatsUpdaterService>();
         services.AddHostedService<PartitionManagerService>();
+
+        AddBotSimulation(services, configuration);
+    }
+
+    /// <summary>
+    /// Registers the bot-simulation subsystem (auto-created public markets + trading bots) when
+    /// "BotSimulation:Enabled" is true. Intended for development and demo environments to make the
+    /// platform look busy; left off by default so it never runs in production or tests.
+    /// </summary>
+    /// <param name="services">The service collection to add to.</param>
+    /// <param name="configuration">The application configuration.</param>
+    private static void AddBotSimulation(IServiceCollection services, IConfiguration configuration)
+    {
+        var section = configuration.GetSection(BotSimulationOptions.SectionName);
+        services.Configure<BotSimulationOptions>(section);
+
+        if (!section.GetValue<bool>(nameof(BotSimulationOptions.Enabled)))
+            return;
+
+        services.AddSingleton<BotSimulationSeeder>();
+        services.AddSingleton<BotTradeExecutor>();
+        services.AddHostedService<MarketFactoryService>();
+        services.AddHostedService<BotTradingService>();
     }
 
     /// <summary>
